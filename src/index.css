@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Outfit", sans-serif;
+  --color-brand-50: #f5f3ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-600: #6d28d9;
+  --color-brand-700: #5b21b6;
+  --color-success: #10b981;
+  --color-ink: #0f172a;
+  --color-surface: #f8fafc;
+}
+
+body {
+  @apply bg-surface font-sans text-ink;
+}
+
+/* Peças de estilo reaproveitadas pelo site: mudar aqui muda em todas as telas. */
+@utility pagina {
+  @apply mx-auto max-w-7xl px-6;
+}
+@utility cartao {
+  @apply rounded-3xl border border-slate-200 bg-white;
+}
+@utility titulo-pagina {
+  @apply font-display text-3xl font-extrabold md:text-4xl;
+}
+@utility titulo-secao {
+  @apply font-display text-xl font-bold;
+}
+@utility titulo-card {
+  @apply font-display text-lg font-bold;
+}
+
+/*
+ * O Tailwind v4 não usa cursor de mão nos botões. Esta regra vale para todo elemento interativo
+ * do site. Está na camada base, então classes utilitárias (ex.: disabled:cursor-not-allowed) continuam vencendo.
+ */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  summary,
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  label:has(> input[type="checkbox"]:not(:disabled)),
+  label:has(> input[type="radio"]:not(:disabled)) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  select:disabled,
+  input:disabled {
+    cursor: not-allowed;
+  }
+}

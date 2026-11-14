@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      Ícone da aba: branco quando o navegador está no tema escuro, roxo no tema claro.
+      O de tema escuro vem primeiro: navegadores que ignoram o atributo media (ex.: Safari) ficam com o último, o roxo.
+    -->
+    <link rel="icon" type="image/png" sizes="64x64" href="/img/favicon-branco.png" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/img/favicon-roxo.png" media="(prefers-color-scheme: light)" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MCE Celulares</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,162 @@
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { CheckCircle2, Clock, MapPin, PackageSearch, ShieldCheck } from 'lucide-react'
+import { AlertaErro } from '../components/auth/AuthShell'
+import { ResumoItens } from '../components/checkout/ResumoItens'
+import { classeBotao } from '../components/ui/botao'
+import { Carregando } from '../components/ui/Carregando'
+import { EstadoVazio } from '../components/ui/EstadoVazio'
+import { useProdutosPorId } from '../hooks/useProdutosPorId'
+import { ApiError } from '../lib/api'
+import { formatarCep, linhaCidade, linhaRua } from '../lib/enderecos'
+import { dataHora, formatarPreco } from '../lib/formatar'
+import { iniciarPagamento } from '../lib/pagamentos'
+import { buscarPedido, type Pedido } from '../lib/pedidos'
+
+type Carga = { id: string; pedido: Pedido | null; erro: boolean }
+
+function Centralizado({ children }: { children: React.ReactNode }) {
+  return <div className="mx-auto flex max-w-xl flex-col items-center px-6 py-20 text-center">{children}</div>
+}
+
+export default function CheckoutPagamento() {
+  const { id = '' } = useParams()
+  const [carga, setCarga] = useState<Carga | null>(null)
+  const [pagando, setPagando] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
+  const [aprovado, setAprovado] = useState(false)
+
+  useEffect(() => {
+    let ativo = true
+    buscarPedido(id)
+      .then((pedido) => ativo && setCarga({ id, pedido, erro: false }))
+      .catch(() => ativo && setCarga({ id, pedido: null, erro: true }))
+    return () => {
+      ativo = false
+    }
+  }, [id])
+
+  const atual = carga?.id === id ? carga : null
+  const idsProdutos = atual?.pedido?.itens.flatMap((i) => (i.id_produto === null ? [] : [i.id_produto])) ?? []
+  const produtos = useProdutosPorId(idsProdutos)
+
+  if (!atual) {
+    return <Carregando />
+  }
+
+  const pedido = atual.pedido
+  if (!pedido) {
+    return (
+      <EstadoVazio moldura={false} nivel={1} icone={PackageSearch} titulo="Pedido não encontrado" descricao="Ele não existe ou não pertence à sua conta.">
+        <Link to="/produtos" className={classeBotao()}>Ver produtos</Link>
+      </EstadoVazio>
+    )
+  }
+
+  const pago = aprovado || ['PAGO', 'ENVIADO', 'ENTREGUE'].includes(pedido.status)
+  if (pago) {
+    return (
+      <Centralizado>
+        <CheckCircle2 size={60} className="text-success" />
+        <h1 className="mt-5 font-display text-3xl font-extrabold">Pagamento aprovado!</h1>
+        <p className="mt-2 text-slate-600">
+          Seu pedido <strong>#{pedido.id_pedido}</strong> foi confirmado. Valor pago: <strong>{formatarPreco(pedido.valor_total)}</strong>.
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Link to={`/pedidos/${pedido.id_pedido}`} className={classeBotao()}>Ver meu pedido</Link>
+          <Link to="/produtos" className={classeBotao('contorno')}>Continuar comprando</Link>
+        </div>
+      </Centralizado>
+    )
+  }
+
+  if (pedido.status === 'CANCELADO') {
+    return (
+      <EstadoVazio
+        moldura={false}
+        nivel={1}
+        icone={Clock}
+        titulo="Este pedido foi cancelado"
+        descricao="O prazo para pagamento terminou ou o pedido foi cancelado. Monte um novo carrinho para comprar."
+      >
+        <Link to="/produtos" className={classeBotao()}>Ver produtos</Link>
+      </EstadoVazio>
+    )
+  }
+
+  const pagar = async () => {
+    setErro(null)
+    setPagando(true)
+    try {
+      const pagamento = await iniciarPagamento(pedido.id_pedido, pedido.valor_total)
+      if (pagamento.url_pagamento) {
+        window.location.assign(pagamento.url_pagamento)
+        return
+      }
+      if (pagamento.status === 'APROVADO') setAprovado(true)
+      else if (pagamento.status === 'RECUSADO') setErro('O pagamento foi recusado. Você pode tentar novamente.')
+      else setErro('Seu pagamento está em processamento. Aguarde a confirmação.')
+    } catch (e) {
+      setErro(e instanceof ApiError ? e.message : 'Não foi possível processar o pagamento. Tente novamente.')
+    } finally {
+      setPagando(false)
+    }
+  }
+
+  const resumo = pedido.itens.map((i) => ({
+    chave: i.id_item,
+    nome: i.nome_produto,
+    quantidade: i.quantidade,
+    precoUnitario: i.preco_unitario,
+    imagem: (i.id_produto !== null && produtos.get(i.id_produto)?.imagem) || null,
+  }))
+  const e = pedido.endereco
+
+  return (
+    <div className="pagina py-10">
+      <div className="grid items-start gap-8 lg:grid-cols-[1fr_380px]">
+        <div className="space-y-6">
+          <h1 className="titulo-pagina">Pagamento</h1>
+
+          {pedido.expira_em && (
+            <p className="flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <Clock size={16} /> Pedido <strong>#{pedido.id_pedido}</strong> reservado. Pague até <strong>{dataHora(pedido.expira_em)}</strong> para garantir seus itens.
+            </p>
+          )}
+
+          {e && (
+            <section className="cartao p-6">
+              <h2 className="flex items-center gap-2 titulo-card"><MapPin size={18} className="text-brand-600" /> Entrega</h2>
+              <p className="mt-3 text-sm">{linhaRua(e)}</p>
+              <p className="text-sm text-slate-600">{linhaCidade(e)} · CEP {formatarCep(e.cep)}</p>
+            </section>
+          )}
+
+          <section className="cartao p-6">
+            <h2 className="flex items-center gap-2 titulo-card"><ShieldCheck size={18} className="text-success" /> Forma de pagamento</h2>
+            <p className="mt-3 text-sm text-slate-600">Ao clicar em <strong>Pagar agora</strong>, seu pagamento é processado com segurança.</p>
+          </section>
+        </div>
+
+        <ResumoItens
+          itens={resumo}
+          subtotal={pedido.valor_total - pedido.valor_frete}
+          frete={pedido.valor_frete}
+          total={pedido.valor_total}
+          acao={
+            <div className="space-y-3">
+              {erro && <AlertaErro mensagem={erro} />}
+              <button
+                onClick={pagar}
+                disabled={pagando}
+                className="w-full rounded-xl bg-success py-3.5 font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {pagando ? 'Processando...' : `Pagar agora ${formatarPreco(pedido.valor_total)}`}
+              </button>
+            </div>
+          }
+        />
+      </div>
+    </div>
+  )
+}
