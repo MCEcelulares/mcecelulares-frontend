@@ -1,0 +1,140 @@
+import type { ReactNode } from 'react'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { AlertTriangle, CheckCircle2, Clock, Loader2, PackageSearch, XCircle } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import { classeBotao } from '../components/ui/botao'
+import { EstadoVazio } from '../components/ui/EstadoVazio'
+import { useConfirmarPagamento } from '../hooks/useConfirmarPagamento'
+import { lerRetornoMercadoPago } from '../lib/retornoMercadoPago'
+
+interface ResultadoProps {
+  icone: LucideIcon
+  classeIcone: string
+  titulo: string
+  descricao: ReactNode
+  children: ReactNode
+}
+
+function Resultado({ icone: Icone, classeIcone, titulo, descricao, children }: ResultadoProps) {
+  return (
+    <div role="status" className="mx-auto flex max-w-xl flex-col items-center px-6 py-20 text-center">
+      <Icone size={60} className={classeIcone} />
+      <h1 className="mt-5 font-display text-3xl font-extrabold">{titulo}</h1>
+      <p className="mt-2 text-slate-600">{descricao}</p>
+      <div className="mt-8 flex flex-wrap justify-center gap-3">{children}</div>
+    </div>
+  )
+}
+
+/**
+ * Para onde o Mercado Pago devolve o cliente depois do Checkout Pro (`/checkout/retorno/:id?status=...`).
+ * O que a URL diz é só uma dica de texto: o resultado vem do back-end, que confere o pagamento no Mercado Pago (ADR-011).
+ */
+export default function CheckoutRetorno() {
+  const { id = '' } = useParams()
+  const [parametros] = useSearchParams()
+  const { resultado, verificarNovamente } = useConfirmarPagamento(id)
+  const { dica } = lerRetornoMercadoPago(parametros)
+
+  const verPedido = <Link to={`/pedidos/${id}`} className={classeBotao()}>Ver meu pedido</Link>
+  const verPedidoSecundario = <Link to={`/pedidos/${id}`} className={classeBotao('contorno')}>Ver meu pedido</Link>
+  const continuar = <Link to="/produtos" className={classeBotao('contorno')}>Continuar comprando</Link>
+
+  switch (resultado.situacao) {
+    case 'confirmando':
+      return (
+        <div role="status" className="mx-auto flex max-w-xl flex-col items-center px-6 py-24 text-center text-brand-600">
+          <Loader2 size={44} className="animate-spin" />
+          <h1 className="mt-5 font-display text-2xl font-bold text-slate-900">Confirmando seu pagamento...</h1>
+          <p className="mt-2 text-slate-600">Estamos conferindo o resultado com o Mercado Pago. Não feche esta página.</p>
+        </div>
+      )
+
+    case 'aprovado':
+      return (
+        <Resultado
+          icone={CheckCircle2}
+          classeIcone="text-success"
+          titulo="Pagamento aprovado!"
+          descricao={<>Seu pedido <strong>#{id}</strong> foi confirmado.</>}
+        >
+          {verPedido}
+          {continuar}
+        </Resultado>
+      )
+
+    case 'pendente':
+      return (
+        <Resultado
+          icone={Clock}
+          classeIcone="text-amber-500"
+          titulo="Pagamento em processamento"
+          descricao={
+            dica === 'aprovado'
+              ? 'O Mercado Pago indicou a aprovação e estamos aguardando a confirmação final. Isso costuma levar poucos instantes.'
+              : 'Assim que o Mercado Pago confirmar o pagamento, seu pedido será atualizado. Pix e boleto podem levar mais tempo.'
+          }
+        >
+          {verPedido}
+          {continuar}
+        </Resultado>
+      )
+
+    case 'recusado':
+      return (
+        <Resultado
+          icone={XCircle}
+          classeIcone="text-red-500"
+          titulo="Pagamento não aprovado"
+          descricao="O Mercado Pago não aprovou este pagamento. Seu pedido continua reservado até o prazo, e você pode tentar de novo."
+        >
+          <Link to={`/checkout/pagamento/${id}`} className={classeBotao()}>Tentar novamente</Link>
+          {verPedidoSecundario}
+        </Resultado>
+      )
+
+    case 'reembolsar':
+      return (
+        <Resultado
+          icone={AlertTriangle}
+          classeIcone="text-amber-500"
+          titulo="Recebemos seu pagamento, mas não pudemos confirmar o pedido"
+          descricao="Isso acontece quando o pedido já foi cancelado ou expirou. Fale com a loja para combinar o reembolso."
+        >
+          <Link to="/contato" className={classeBotao()}>Falar com a loja</Link>
+          <Link to="/pedidos" className={classeBotao('contorno')}>Meus pedidos</Link>
+        </Resultado>
+      )
+
+    case 'sem_pagamento':
+      return (
+        <EstadoVazio
+          moldura={false}
+          nivel={1}
+          icone={PackageSearch}
+          titulo="Não encontramos um pagamento para este pedido"
+          descricao="Você ainda não iniciou o pagamento, ou o pedido não pertence à sua conta."
+        >
+          <Link to={`/checkout/pagamento/${id}`} className={classeBotao()}>Pagar agora</Link>
+          <Link to="/pedidos" className={classeBotao('contorno')}>Meus pedidos</Link>
+        </EstadoVazio>
+      )
+
+    case 'erro':
+      return (
+        <EstadoVazio
+          moldura={false}
+          nivel={1}
+          role="alert"
+          icone={AlertTriangle}
+          titulo="Não foi possível confirmar o pagamento"
+          descricao={resultado.mensagem}
+        >
+          {resultado.status !== 400 && (
+            <button type="button" onClick={verificarNovamente} className={classeBotao()}>Tentar novamente</button>
+          )}
+          <Link to="/pedidos" className={classeBotao('contorno')}>Meus pedidos</Link>
+        </EstadoVazio>
+      )
+  }
+}
