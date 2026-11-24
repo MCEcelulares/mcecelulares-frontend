@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { CheckCircle2, Clock, MapPin, PackageSearch, ShieldCheck } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Clock, MapPin, PackageSearch, ShieldCheck } from 'lucide-react'
 import { ResumoItens } from '../components/checkout/ResumoItens'
 import { Aviso, type TomAviso } from '../components/ui/Aviso'
 import { classeBotao } from '../components/ui/botao'
 import { Carregando } from '../components/ui/Carregando'
 import { EstadoVazio } from '../components/ui/EstadoVazio'
 import { useProdutosPorId } from '../hooks/useProdutosPorId'
-import { ApiError } from '../lib/api'
+import { ApiError, statusDe } from '../lib/api'
 import { formatarCep, linhaCidade, linhaRua } from '../lib/enderecos'
 import { dataHora, formatarPreco } from '../lib/formatar'
 import { iniciarPagamento } from '../lib/pagamentos'
 import { buscarPedido, type Pedido } from '../lib/pedidos'
 
+/** `erro`: falhou por outro motivo que não "não existe / não é seu" (rede, servidor), então vale tentar de novo. */
 type Carga = { id: string; pedido: Pedido | null; erro: boolean }
 
 function Centralizado({ children }: { children: React.ReactNode }) {
@@ -25,16 +26,22 @@ export default function CheckoutPagamento() {
   const [pagando, setPagando] = useState(false)
   const [mensagem, setMensagem] = useState<{ tom: TomAviso; texto: string } | null>(null)
   const [aprovado, setAprovado] = useState(false)
+  const [tentativa, setTentativa] = useState(0)
 
   useEffect(() => {
     let ativo = true
     buscarPedido(id)
       .then((pedido) => ativo && setCarga({ id, pedido, erro: false }))
-      .catch(() => ativo && setCarga({ id, pedido: null, erro: true }))
+      .catch((e: unknown) => ativo && setCarga({ id, pedido: null, erro: ![403, 404].includes(statusDe(e)) }))
     return () => {
       ativo = false
     }
-  }, [id])
+  }, [id, tentativa])
+
+  const carregarDeNovo = () => {
+    setCarga(null)
+    setTentativa((t) => t + 1)
+  }
 
   const atual = carga?.id === id ? carga : null
   const idsProdutos = atual?.pedido?.itens.flatMap((i) => (i.id_produto === null ? [] : [i.id_produto])) ?? []
@@ -45,6 +52,22 @@ export default function CheckoutPagamento() {
   }
 
   const pedido = atual.pedido
+  if (!pedido && atual.erro) {
+    return (
+      <EstadoVazio
+        moldura={false}
+        nivel={1}
+        role="alert"
+        icone={AlertTriangle}
+        titulo="Não foi possível carregar o pedido"
+        descricao="Verifique sua conexão e tente de novo. Seu pedido não foi alterado."
+      >
+        <button type="button" onClick={carregarDeNovo} className={classeBotao()}>Tentar novamente</button>
+        <Link to="/pedidos" className={classeBotao('contorno')}>Meus pedidos</Link>
+      </EstadoVazio>
+    )
+  }
+
   if (!pedido) {
     return (
       <EstadoVazio moldura={false} nivel={1} icone={PackageSearch} titulo="Pedido não encontrado" descricao="Ele não existe ou não pertence à sua conta.">
