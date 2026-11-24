@@ -16,6 +16,7 @@ import NotFound from './pages/NotFound'
 import PedidoDetalhe from './pages/PedidoDetalhe'
 import Pedidos from './pages/Pedidos'
 import AdminInicio from './pages/admin/AdminInicio'
+import { AdminCategorias, AdminMarcas } from './pages/admin/AdminCategoriasMarcas'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminProdutoForm from './pages/admin/AdminProdutoForm'
 import AdminProdutos from './pages/admin/AdminProdutos'
@@ -52,6 +53,8 @@ export default function App() {
                 <Route path="produtos" element={<AdminProdutos />} />
                 <Route path="produtos/novo" element={<AdminProdutoForm />} />
                 <Route path="produtos/:id" element={<AdminProdutoForm />} />
+                <Route path="categorias" element={<AdminCategorias />} />
+                <Route path="marcas" element={<AdminMarcas />} />
               </Route>
             </Route>
           </Route>
