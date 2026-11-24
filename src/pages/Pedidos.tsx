@@ -6,17 +6,9 @@ import { classeBotao } from '../components/ui/botao'
 import { EstadoVazio } from '../components/ui/EstadoVazio'
 import { Paginacao } from '../components/ui/Paginacao'
 import { useConsulta } from '../hooks/useConsulta'
-import { listarPedidos, STATUS_INFO, type StatusPedido } from '../lib/pedidos'
+import { FILTROS_STATUS, listarPedidos, STATUS_INFO, type StatusPedido } from '../lib/pedidos'
 
 const LIMITE = 8
-const FILTROS: { valor: StatusPedido | null; rotulo: string }[] = [
-  { valor: null, rotulo: 'Todos' },
-  { valor: 'AGUARDANDO_PAGAMENTO', rotulo: 'Aguardando pagamento' },
-  { valor: 'PAGO', rotulo: 'Pago' },
-  { valor: 'ENVIADO', rotulo: 'Enviado' },
-  { valor: 'ENTREGUE', rotulo: 'Entregue' },
-  { valor: 'CANCELADO', rotulo: 'Cancelado' },
-]
 
 export default function Pedidos() {
   const [sp, setSp] = useSearchParams()
@@ -43,7 +35,7 @@ export default function Pedidos() {
 
       <div className="mt-6 flex flex-wrap items-center gap-2" role="group" aria-label="Filtrar por status">
         <span className="mr-1 text-sm font-semibold text-slate-600">Filtrar por:</span>
-        {FILTROS.map((f) => (
+        {FILTROS_STATUS.map((f) => (
           <button
             key={f.rotulo}
             onClick={() => mudar(f.valor)}
