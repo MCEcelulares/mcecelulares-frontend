@@ -12,7 +12,6 @@ export default function Home() {
   const destaques = useConsulta(listarDestaques)
   const recentes = useConsulta(listarRecentes)
 
-  // Sem os produtos a Home ficaria em branco: avisa e deixa tentar de novo.
   if (destaques.erro && recentes.erro) {
     return (
       <EstadoVazio

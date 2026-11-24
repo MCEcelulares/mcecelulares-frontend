@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 
-/** Logo da marca em roxo, para fundos claros (header). Nos fundos escuros usa-se logo-mcecelulares.png (branca). */
 export function Logo() {
   return (
     <Link to="/" className="flex shrink-0 items-center" aria-label="MCE Celulares, página inicial">

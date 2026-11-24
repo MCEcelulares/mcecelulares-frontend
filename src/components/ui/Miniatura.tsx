@@ -8,7 +8,6 @@ const TAMANHOS = {
   xl: { caixa: 'h-24 w-24 rounded-xl', imagem: 'p-2', icone: 28 },
 }
 
-/** Miniatura quadrada de produto, com ícone no lugar quando não há imagem. */
 export function Miniatura({ imagem, tamanho }: { imagem: string | null | undefined; tamanho: keyof typeof TAMANHOS }) {
   const t = TAMANHOS[tamanho]
   const url = urlImagem(imagem)

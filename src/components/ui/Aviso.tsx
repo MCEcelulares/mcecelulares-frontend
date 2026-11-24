@@ -13,14 +13,12 @@ const TONS: Record<TomAviso, { icone: LucideIcon; classe: string; role: 'status'
 
 interface Props {
   tom?: TomAviso
-  /** Troca o ícone do tom (ex.: relógio para um prazo). */
   icone?: LucideIcon
   titulo?: string
   children: ReactNode
   className?: string
 }
 
-/** Faixa de aviso em linha: informa, alerta ou reporta um erro sem tirar o cliente da página. */
 export function Aviso({ tom = 'info', icone, titulo, children, className = '' }: Props) {
   const { icone: IconePadrao, classe, role } = TONS[tom]
   const Icone = icone ?? IconePadrao

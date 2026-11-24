@@ -9,7 +9,6 @@ import { useAcompanharPedido } from '../hooks/useAcompanharPedido'
 import { useConfirmarPagamento } from '../hooks/useConfirmarPagamento'
 import { lerRetornoMercadoPago } from '../lib/retornoMercadoPago'
 
-/** Tempo para o cliente ler a confirmação antes de ser levado ao pedido. */
 const ATRASO_PARA_O_PEDIDO_MS = 3000
 
 interface ResultadoProps {
@@ -17,7 +16,6 @@ interface ResultadoProps {
   classeIcone: string
   titulo: string
   descricao: ReactNode
-  /** Aviso extra, entre o texto e os botões. */
   aviso?: ReactNode
   children: ReactNode
 }
@@ -34,10 +32,6 @@ function Resultado({ icone: Icone, classeIcone, titulo, descricao, aviso, childr
   )
 }
 
-/**
- * Para onde o Mercado Pago devolve o cliente depois do Checkout Pro (`/checkout/retorno/:id?status=...`).
- * O que a URL diz é só uma dica de texto: o resultado vem do back-end, que confere o pagamento no Mercado Pago (ADR-011).
- */
 export default function CheckoutRetorno() {
   const { id = '' } = useParams()
   const [parametros] = useSearchParams()
@@ -45,9 +39,6 @@ export default function CheckoutRetorno() {
   const { dica } = lerRetornoMercadoPago(parametros)
   const navigate = useNavigate()
 
-  // Pagamento aprovado leva ao pedido. `replace` tira esta tela (e a URL com os parâmetros do Mercado Pago) do histórico:
-  // voltar ou atualizar a página não repete a confirmação. Sair antes cancela o temporizador.
-  // Pendente: o back-end ainda espera o Mercado Pago. Acompanhamos o pedido, que o webhook atualiza, até ele ser pago.
   const pendente = resultado.situacao === 'pendente'
   const { status: statusPedido, esgotado } = useAcompanharPedido(id, pendente)
   const pagoNoAcompanhamento = pendente && (statusPedido === 'PAGO' || statusPedido === 'ENVIADO' || statusPedido === 'ENTREGUE')

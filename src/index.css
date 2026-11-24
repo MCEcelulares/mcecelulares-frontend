@@ -16,7 +16,6 @@ body {
   @apply bg-surface font-sans text-ink;
 }
 
-/* Peças de estilo reaproveitadas pelo site: mudar aqui muda em todas as telas. */
 @utility pagina {
   @apply mx-auto max-w-7xl px-6;
 }
@@ -33,10 +32,6 @@ body {
   @apply font-display text-lg font-bold;
 }
 
-/*
- * O Tailwind v4 não usa cursor de mão nos botões. Esta regra vale para todo elemento interativo
- * do site. Está na camada base, então classes utilitárias (ex.: disabled:cursor-not-allowed) continuam vencendo.
- */
 @layer base {
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),

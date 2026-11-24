@@ -14,7 +14,6 @@ export interface Carrinho {
   total: number
 }
 
-// O back pode devolver decimais como string; normaliza para number.
 const normalizar = (c: Carrinho): Carrinho => ({
   ...c,
   total: Number(c.total),

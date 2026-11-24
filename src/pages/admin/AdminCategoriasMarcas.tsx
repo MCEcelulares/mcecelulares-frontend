@@ -26,7 +26,6 @@ interface Item {
   ativo: boolean
 }
 
-/** O que muda entre categorias e marcas: os textos e as chamadas. A tela é a mesma. */
 interface Config {
   titulo: string
   novo: string
@@ -38,7 +37,6 @@ interface Config {
   excluir: (id: number) => Promise<unknown>
 }
 
-// Definidas fora dos componentes: `useConsulta` precisa de uma função estável.
 const CATEGORIAS: Config = {
   titulo: 'Categorias',
   novo: 'Nova categoria',
@@ -71,7 +69,6 @@ function CadastroSimples({ config }: { config: Config }) {
   const [editando, setEditando] = useState<number | null>(null)
   const [nomeEdicao, setNomeEdicao] = useState('')
 
-  /** Roda a ação, mostra o erro da API (ex.: "há produtos ligados") e atualiza a lista. */
   const executar = async (acao: () => Promise<unknown>) => {
     setErroAcao(null)
     try {

@@ -1,5 +1,3 @@
-// Estilo único dos botões e links-botão do site: `<button className={classeBotao('primario')}>` ou `<Link className={classeBotao(...)}>`.
-// As classes ficam aqui (e não no CSS) para tamanho e cor nunca disputarem a mesma propriedade.
 
 const VARIANTES = {
   primario: 'bg-brand-600 text-white hover:bg-brand-700',
@@ -15,6 +13,5 @@ const TAMANHOS = {
   formulario: 'w-full rounded-xl py-3.5',
 }
 
-/** `extra` recebe o que é específico do lugar (margem, `block`, `text-sm`, `sm:w-auto`...). */
 export const classeBotao = (variante: keyof typeof VARIANTES = 'primario', tamanho: keyof typeof TAMANHOS = 'md', extra = '') =>
   `${VARIANTES[variante]} ${TAMANHOS[tamanho]} font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${extra}`.trim()

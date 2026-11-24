@@ -37,7 +37,7 @@ export default function Checkout() {
   const { usuario } = useAuth()
   const { carrinho, carregando: carregandoCarrinho, recarregar } = useCarrinho()
   const navigate = useNavigate()
-  const idUsuario = usuario!.id_usuario // a rota é protegida
+  const idUsuario = usuario!.id_usuario
 
   const [enderecos, setEnderecos] = useState<Endereco[] | null>(null)
   const [erroEnderecos, setErroEnderecos] = useState(false)
@@ -68,7 +68,7 @@ export default function Checkout() {
   if (!carrinho || carrinho.itens.length === 0) return <Navigate to="/carrinho" replace />
 
   const lista = enderecos ?? []
-  const mostrarForm = cadastrando || lista.length === 0
+  const mostrarForm = !erroEnderecos && (cadastrando || lista.length === 0)
 
   const aoSalvar = (novo: Endereco) => {
     setEnderecos((atual) => [...(atual ?? []), novo])
@@ -83,7 +83,7 @@ export default function Checkout() {
     try {
       const pedido = await criarPedido(escolhido)
       navigate(`/checkout/pagamento/${pedido.id_pedido}`, { replace: true })
-      recarregar().catch(() => undefined) // criar o pedido encerra o carrinho; se falhar, o carrinho atualiza na próxima visita
+      recarregar().catch(() => undefined)
     } catch (e) {
       setErro(mensagemDe(e, 'Não foi possível criar o pedido. Tente novamente.'))
       setCriando(false)
@@ -141,7 +141,7 @@ export default function Checkout() {
               >
                 {criando ? 'Criando pedido...' : 'Ir para Pagamento'}
               </button>
-              {escolhido === null && <p className="text-center text-xs text-slate-500">Cadastre ou selecione um endereço para continuar.</p>}
+              {escolhido === null && !erroEnderecos && <p className="text-center text-xs text-slate-500">Cadastre ou selecione um endereço para continuar.</p>}
             </div>
           }
         />

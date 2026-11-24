@@ -7,19 +7,13 @@ interface Opcoes<V extends Record<string, string>> {
   inicial: V | (() => V)
   validar?: (valores: V) => Erros<V>
   enviar: (valores: V) => Promise<unknown>
-  /** Mensagem para falhas que não vieram da API (rede, bug). */
   mensagemPadrao: string
-  /** Texto do alerta geral para um ApiError sem erros por campo. Padrão: a mensagem da API. */
   mensagemErro?: (err: ApiError) => string
-  /** Erros por campo além dos `fieldErrors` da API (ex.: 409 de CPF duplicado). */
   errosExtras?: (err: ApiError) => Erros<V>
-  /** Mantém `enviando` ligado após o sucesso (quando a tela vai ser trocada/redirecionada). */
   manterEnviando?: boolean
-  /** Chamado ao editar um campo ou reenviar (ex.: limpar mensagem de sucesso). */
   aoMudar?: () => void
 }
 
-/** Estado e fluxo comuns dos formulários: valores, validação, envio e mapeamento de erros da API. */
 export function useFormulario<V extends Record<string, string>>(opcoes: Opcoes<V>) {
   const { validar, mensagemPadrao, mensagemErro, errosExtras, manterEnviando, aoMudar } = opcoes
   const [valores, setValores] = useState<V>(opcoes.inicial)

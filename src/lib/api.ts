@@ -2,7 +2,6 @@ const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:8080').replac
 
 export class ApiError extends Error {
   status: number
-  /** Detalhes de validação do back (zod `flatten()`): `{ fieldErrors: { campo: ['mensagem'] } }`. */
   detalhes?: { fieldErrors?: Record<string, string[] | undefined> }
 
   constructor(message: string, status: number, detalhes?: ApiError['detalhes']) {
@@ -12,18 +11,13 @@ export class ApiError extends Error {
   }
 }
 
-/** Código HTTP de um erro da API; 0 se a requisição nem chegou ao servidor ou se o erro não for da API. */
 export const statusDe = (e: unknown) => (e instanceof ApiError ? e.status : 0)
 
-/** Mensagem do erro da API; para qualquer outra falha (rede, bug), o texto padrão da tela. */
 export const mensagemDe = (e: unknown, padrao: string) => (e instanceof ApiError ? e.message : padrao)
 
 export interface ApiInit extends Omit<RequestInit, 'body'> {
-  /** Corpo JSON (serializado automaticamente). */
   json?: unknown
-  /** Corpo multipart (envio de arquivo). O navegador define o Content-Type com o separador. */
   formData?: FormData
-  /** Access token JWT; vira o header Authorization. */
   token?: string | null
 }
 
@@ -36,7 +30,6 @@ export async function api<T>(path: string, { json, formData, token, ...init }: A
   try {
     res = await fetch(`${API_URL}${path}`, { ...init, headers, body: json !== undefined ? JSON.stringify(json) : formData })
   } catch {
-    // fetch só lança quando não chega ao servidor (offline, servidor fora do ar, CORS); status 0 = sem resposta
     throw new ApiError('Sem conexão com o servidor. Verifique sua internet e tente novamente.', 0)
   }
 
@@ -49,7 +42,6 @@ export async function api<T>(path: string, { json, formData, token, ...init }: A
   return res.json() as Promise<T>
 }
 
-/** Converte o caminho de imagem devolvido pela API (ex.: /catalogo/imagens/x.png) em URL completa. */
 export function urlImagem(caminho: string | null | undefined): string | null {
   if (!caminho) return null
   return /^https?:\/\//.test(caminho) ? caminho : `${API_URL}${caminho}`

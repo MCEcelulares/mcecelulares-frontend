@@ -1,7 +1,5 @@
 import { soDigitos } from './mascaras'
 
-// Mesmas regras do back (identidade-service), para o usuário ver o erro antes de enviar.
-
 export function cpfValido(valor: string): boolean {
   const cpf = soDigitos(valor)
   if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false
