@@ -1,7 +1,9 @@
 import { Route, Routes } from 'react-router-dom'
+import { ExigePermissao } from './components/admin/ExigePermissao'
 import { RotaProtegida } from './components/auth/RotaProtegida'
 import { CheckoutLayout } from './components/layout/CheckoutLayout'
 import { Layout } from './components/layout/Layout'
+import { PERMISSAO } from './lib/permissoes'
 import Cadastro from './pages/Cadastro'
 import Carrinho from './pages/Carrinho'
 import Checkout from './pages/Checkout'
@@ -13,6 +15,8 @@ import Login from './pages/Login'
 import NotFound from './pages/NotFound'
 import PedidoDetalhe from './pages/PedidoDetalhe'
 import Pedidos from './pages/Pedidos'
+import AdminInicio from './pages/admin/AdminInicio'
+import AdminLayout from './pages/admin/AdminLayout'
 import ContaLayout from './pages/conta/ContaLayout'
 import DadosConta from './pages/conta/DadosConta'
 import EnderecosConta from './pages/conta/EnderecosConta'
@@ -38,6 +42,11 @@ export default function App() {
             <Route index element={<DadosConta />} />
             <Route path="enderecos" element={<EnderecosConta />} />
             <Route path="seguranca" element={<Seguranca />} />
+          </Route>
+          <Route path="admin" element={<ExigePermissao permissao={PERMISSAO.painel} />}>
+            <Route element={<AdminLayout />}>
+              <Route index element={<AdminInicio />} />
+            </Route>
           </Route>
         </Route>
         <Route path="*" element={<NotFound />} />
