@@ -21,6 +21,13 @@ interface Leitura {
  */
 export function useAcompanharPedido(idPedido: string, ativo: boolean) {
   const [leitura, setLeitura] = useState<Leitura | null>(null)
+  const [estavaAtivo, setEstavaAtivo] = useState(ativo)
+
+  // Ao reativar (ex.: o cliente pediu "verificar agora" e o pedido continua pendente) recomeça sem a leitura antiga.
+  if (estavaAtivo !== ativo) {
+    setEstavaAtivo(ativo)
+    if (ativo) setLeitura(null)
+  }
 
   useEffect(() => {
     if (!ativo) return
