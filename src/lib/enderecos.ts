@@ -44,7 +44,6 @@ export const removerEndereco = (idUsuario: number, idEndereco: number) =>
 export const marcarEnderecoPrincipal = (idUsuario: number, idEndereco: number) =>
   apiAutenticada<Endereco>(`/identidade/usuarios/${idUsuario}/enderecos/${idEndereco}/principal`, { method: 'PATCH' })
 
-/** "85420000" -> "85420-000" */
 export const formatarCep = (cep: string) => {
   const d = soDigitos(cep)
   return d.length === 8 ? `${d.slice(0, 5)}-${d.slice(5)}` : cep
@@ -52,8 +51,6 @@ export const formatarCep = (cep: string) => {
 
 type EnderecoTexto = Pick<Endereco, 'endereco' | 'numero' | 'complemento' | 'bairro' | 'cidade' | 'estado'>
 
-/** "Rua X, 123 - Apto 4" */
 export const linhaRua = (e: EnderecoTexto) => `${e.endereco}, ${e.numero}${e.complemento ? ` - ${e.complemento}` : ''}`
 
-/** "Bairro · Cidade - UF" */
 export const linhaCidade = (e: EnderecoTexto) => `${e.bairro ? `${e.bairro} · ` : ''}${e.cidade} - ${e.estado}`

@@ -8,7 +8,6 @@ import { formatarPreco } from '../../lib/formatar'
 import { BarraSuperior } from './BarraSuperior'
 import { Logo } from './Logo'
 
-// Estilo compartilhado por "Minha Conta" e "Carrinho": no hover/foco o círculo do ícone vira roxo e o texto acompanha.
 const acaoDoHeader =
   'flex items-center gap-3 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-600'
 const iconeDoHeader =
@@ -36,7 +35,7 @@ export function Header() {
     <header className="sticky top-0 z-40 bg-white shadow-sm">
       <BarraSuperior />
 
-      {/* Logo, busca e ações */}
+      {}
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-3 px-4 py-4 md:gap-x-6 md:px-6">
         <Logo />
 
@@ -95,7 +94,7 @@ export function Header() {
         </div>
       </div>
 
-      {/* Navegação por categorias */}
+      {}
       <nav className="border-t border-slate-200">
         <div className="mx-auto flex max-w-7xl items-center gap-6 overflow-x-auto px-6 py-3">
           <Link

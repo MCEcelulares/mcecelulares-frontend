@@ -8,7 +8,6 @@ export interface ResumoRecompra {
   falhas: string[]
 }
 
-/** Coloca de novo no carrinho os itens de um pedido. Itens sem estoque ou removidos do catálogo são listados em `falhas`. */
 export function useComprarNovamente() {
   const { adicionar } = useCarrinho()
   const [executando, setExecutando] = useState(false)

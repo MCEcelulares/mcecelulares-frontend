@@ -84,7 +84,7 @@ function LinhaItem({ item, produto, ocupado, onQuantidade, onRemover }: LinhaPro
 }
 
 export default function Carrinho() {
-  const { carrinho, carregando, atualizar, remover, quantidadeTotal } = useCarrinho()
+  const { carrinho, carregando, erro: erroCarrinho, recarregar, atualizar, remover, quantidadeTotal } = useCarrinho()
   const [pendentes, setPendentes] = useState<Set<number>>(new Set())
   const [erro, setErro] = useState<string | null>(null)
   const produtos = useProdutosPorId(carrinho?.itens.map((i) => i.id_produto) ?? [])
@@ -117,6 +117,10 @@ export default function Carrinho() {
 
       {carregando ? (
         <Carregando rotulo="Carregando carrinho" className="mt-10 py-20" />
+      ) : erroCarrinho ? (
+        <EstadoVazio icone={ShoppingBag} titulo="Não foi possível carregar seu carrinho" descricao="Tente novamente em instantes." role="alert" className="mt-8">
+          <button type="button" onClick={() => recarregar().catch(() => undefined)} className={classeBotao()}>Tentar novamente</button>
+        </EstadoVazio>
       ) : itens.length === 0 ? (
         <EstadoVazio icone={ShoppingBag} titulo="Seu carrinho está vazio" descricao="Explore nossos produtos e adicione o que você gostar." className="mt-8">
           <Link to="/produtos" className={classeBotao()}>Ver produtos</Link>

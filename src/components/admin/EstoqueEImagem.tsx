@@ -11,7 +11,6 @@ import { BotaoConfirmar } from './BotaoConfirmar'
 
 interface Props {
   produto: Produto
-  /** Chamado depois de uma alteração, para a tela buscar o produto de novo. */
   aoMudar: () => Promise<unknown>
 }
 
@@ -65,7 +64,6 @@ export function ImagemDoProduto({ produto, aoMudar }: Props) {
   const escolher = async (arquivo: File | undefined) => {
     setSucesso(null)
     if (!arquivo) return
-    // O back-end confere o tipo pelos bytes; aqui só se evita mandar o que certamente será recusado.
     if (!TIPOS.includes(arquivo.type)) return setErro('Use uma imagem JPEG, PNG ou WEBP.')
     if (arquivo.size > LIMITE_BYTES) return setErro('A imagem deve ter até 2 MB.')
     setErro(null)

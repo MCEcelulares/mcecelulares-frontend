@@ -31,7 +31,6 @@ function DadosDoUsuario({ perfil, aoSalvar }: { perfil: Perfil; aoSalvar: () => 
     validar: (v): Erros<Valores> => ({
       ...(v.nome.trim().length < 2 && { nome: 'Informe o nome completo.' }),
       ...(!emailValido(v.email) && { email: 'E-mail inválido.' }),
-      // Contas criadas pelo Google podem não ter CPF e telefone: só se confere o que for preenchido.
       ...(v.cpf.trim() && !cpfValido(v.cpf) && { cpf: 'CPF inválido.' }),
       ...(v.telefone.trim() && !telefoneValido(v.telefone) && { telefone: 'Informe um telefone com DDD.' }),
     }),

@@ -12,7 +12,6 @@ import { HORARIOS, situacaoAgora } from '../lib/horario'
 import { mascararTelefone, soDigitos } from '../lib/mascaras'
 import { emailValido, telefoneValido } from '../lib/validacao'
 
-
 const ASSUNTOS = ['Dúvida sobre pedido', 'Troca ou devolução', 'Garantia', 'Pagamento', 'Entrega', 'Sugestão', 'Outro']
 
 const cartao = 'cartao p-6'
@@ -47,7 +46,6 @@ function FormContato() {
       })
       setEnviado(true)
     },
-    // 400/429 trazem texto útil da API; o resto vira a mensagem genérica.
     mensagemErro: (err) =>
       err.status === 400 || err.status === 429
         ? err.message
@@ -175,7 +173,6 @@ export default function Contato() {
       titulo="Fale com a MCE"
       subtitulo="Estamos prontos para tirar suas dúvidas, ajudar com pedidos e receber sugestões."
       colunas="lg:grid-cols-[2fr_1fr]"
-      // remonta o formulário quando a sessão termina de carregar, para preencher nome, e-mail e telefone
       card={<FormContato key={usuario?.id_usuario ?? 'visitante'} />}
       painel={<Atendimento />}
     />

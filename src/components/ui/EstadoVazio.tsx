@@ -5,17 +5,13 @@ interface Props {
   icone: LucideIcon
   titulo: string
   descricao?: ReactNode
-  /** Botões ou links de ação, abaixo do texto. */
   children?: ReactNode
-  /** Com cartão pontilhado ao redor (padrão) ou como texto solto no centro da página. */
   moldura?: boolean
-  /** 1 quando o título é o principal da página. */
   nivel?: 1 | 2
   role?: 'alert' | 'status'
   className?: string
 }
 
-/** Tela de "nada por aqui": lista vazia, item não encontrado ou erro de carregamento. */
 export function EstadoVazio({ icone: Icone, titulo, descricao, children, moldura = true, nivel = 2, role, className = '' }: Props) {
   const Titulo = nivel === 1 ? 'h1' : 'h2'
   const caixa = moldura ? 'rounded-3xl border border-dashed border-slate-300 bg-white' : 'mx-auto max-w-xl'

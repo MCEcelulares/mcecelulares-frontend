@@ -5,7 +5,6 @@ import { useFormulario, type Erros } from '../../hooks/useFormulario'
 import { atualizarEndereco, criarEndereco, ESTADOS, type Endereco } from '../../lib/enderecos'
 import { mascararCep, soDigitos } from '../../lib/mascaras'
 
-
 const VAZIO = { cep: '', endereco: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '' }
 
 function validar(v: typeof VAZIO): Erros<typeof VAZIO> {
@@ -22,7 +21,6 @@ interface Props {
   idUsuario: number
   onSalvo: (endereco: Endereco) => void
   onCancelar?: () => void
-  /** Se informado, o formulário edita este endereço em vez de criar um novo. */
   endereco?: Endereco
 }
 
@@ -37,7 +35,6 @@ export function FormEndereco({ idUsuario, onSalvo, onCancelar, endereco: emEdica
     validar,
     enviar: async (v) => {
       const dados = { endereco: v.endereco.trim(), numero: v.numero.trim(), cidade: v.cidade.trim(), estado: v.estado, cep: v.cep }
-      // Na edição, '' limpa o campo; na criação, campo vazio simplesmente não é enviado.
       const salvo = emEdicao
         ? await atualizarEndereco(idUsuario, emEdicao.id_endereco, { ...dados, complemento: v.complemento.trim(), bairro: v.bairro.trim() })
         : await criarEndereco(idUsuario, { ...dados, complemento: v.complemento.trim() || undefined, bairro: v.bairro.trim() || undefined })

@@ -55,7 +55,6 @@ export interface Pedido {
   } | null
 }
 
-// O back pode devolver decimais como string; normaliza para number.
 const normalizar = (p: Pedido): Pedido => ({
   ...p,
   valor_total: Number(p.valor_total),
@@ -63,7 +62,6 @@ const normalizar = (p: Pedido): Pedido => ({
   itens: (p.itens ?? []).map((i) => ({ ...i, preco_unitario: Number(i.preco_unitario) })),
 })
 
-/** `query`: status, pagina, limite. Do mais recente para o mais antigo; traz só o resumo (sem itens). */
 export const listarPedidos = (query: string) =>
   apiAutenticada<PedidosPagina>(`/vendas/pedidos?${query}`).then((p) => ({
     ...p,
@@ -76,7 +74,6 @@ export const criarPedido = (idEndereco: number) =>
 export const buscarPedido = (id: string) =>
   apiAutenticada<Pedido>(`/vendas/pedidos/${encodeURIComponent(id)}`).then(normalizar)
 
-/** Filtros de status das listas de pedidos (do cliente e do painel). `valor: null` é "todos". */
 export const FILTROS_STATUS: { valor: StatusPedido | null; rotulo: string }[] = [
   { valor: null, rotulo: 'Todos' },
   { valor: 'AGUARDANDO_PAGAMENTO', rotulo: 'Aguardando pagamento' },

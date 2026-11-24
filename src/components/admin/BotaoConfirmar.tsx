@@ -2,15 +2,12 @@ import { useState } from 'react'
 
 interface Props {
   rotulo: string
-  /** Pergunta mostrada no lugar do botão enquanto o cliente decide. */
   pergunta: string
   confirmarRotulo?: string
   aoConfirmar: () => Promise<unknown> | void
-  /** `perigo` (vermelho) para ações que não se desfazem sozinhas. */
   tom?: 'perigo' | 'neutro'
 }
 
-/** Ação com confirmação em duas etapas, sem janela: o botão vira "Tem certeza? Sim / Não". */
 export function BotaoConfirmar({ rotulo, pergunta, confirmarRotulo = 'Sim', aoConfirmar, tom = 'perigo' }: Props) {
   const [aberto, setAberto] = useState(false)
   const [executando, setExecutando] = useState(false)

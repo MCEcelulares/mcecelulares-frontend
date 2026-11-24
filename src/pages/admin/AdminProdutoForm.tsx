@@ -37,7 +37,6 @@ const inicial = (p: Produto | null): Valores => ({
   destaque: p ? String(p.destaque) : 'false',
 })
 
-// O back-end só aceita estoque no cadastro; depois dele o estoque muda por ajuste (soma ou subtração), nunca por edição.
 function validar(v: Valores, editando: boolean): Erros<Valores> {
   const erros: Erros<Valores> = {}
   if (!v.nome.trim()) erros.nome = 'Informe o nome do produto.'

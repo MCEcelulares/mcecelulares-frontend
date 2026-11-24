@@ -13,7 +13,6 @@ import { dataHora, formatarPreco } from '../lib/formatar'
 import { iniciarPagamento, urlDePagamentoSegura } from '../lib/pagamentos'
 import { buscarPedido, type Pedido } from '../lib/pedidos'
 
-/** `erro`: falhou por outro motivo que não "não existe / não é seu" (rede, servidor), então vale tentar de novo. */
 type Carga = { id: string; pedido: Pedido | null; erro: boolean }
 
 function Centralizado({ children }: { children: React.ReactNode }) {
@@ -40,7 +39,6 @@ export default function CheckoutPagamento() {
     }
   }, [id, tentativa])
 
-  // Voltar do Mercado Pago pelo botão do navegador pode restaurar esta página como estava (cache de ida e volta).
   useEffect(() => {
     const aoMostrar = (e: PageTransitionEvent) => {
       if (!e.persisted) return
@@ -123,8 +121,6 @@ export default function CheckoutPagamento() {
   const pagar = async () => {
     setMensagem(null)
     setPagando(true)
-    // A aba é aberta já no clique: depois de um await o navegador a trataria como pop-up e a bloquearia. Ela espera em
-    // branco pelo link do Mercado Pago. Sem `opener`, a página do Mercado Pago não alcança esta loja.
     const aba = window.open('about:blank', '_blank')
     if (aba) aba.opener = null
     let redirecionou = false
@@ -136,20 +132,17 @@ export default function CheckoutPagamento() {
           setMensagem({ tom: 'erro', texto: 'Não foi possível abrir o Mercado Pago. Tente novamente em instantes.' })
           return
         }
-        // O botão continua bloqueado até esta página sair: um segundo clique criaria outro pagamento.
         redirecionou = true
         if (aba) {
-          // O pagamento segue na aba nova; esta aba mostra o pedido, onde o cliente confere o resultado ("Já paguei").
           aba.location.href = pagamento.url_pagamento
           navigate(`/pedidos/${pedido.id_pedido}`)
           return
         }
-        // Pop-up bloqueado: segue na mesma aba.
         setRedirecionando(true)
         window.location.assign(pagamento.url_pagamento)
         return
       }
-      aba?.close() // gateway simulado: não há link, o resultado vem na resposta
+      aba?.close()
       if (pagamento.status === 'APROVADO') setAprovado(true)
       else if (pagamento.status === 'RECUSADO') setMensagem({ tom: 'atencao', texto: 'O pagamento foi recusado. Você pode tentar novamente.' })
       else setMensagem({ tom: 'info', texto: 'Seu pagamento está em processamento. Aguarde a confirmação.' })

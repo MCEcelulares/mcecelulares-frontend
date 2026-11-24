@@ -15,7 +15,6 @@ interface Props {
   subtotal: number
   frete?: number
   total: number
-  /** Botão/ação do rodapé do resumo. */
   acao?: ReactNode
 }
 

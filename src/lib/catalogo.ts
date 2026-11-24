@@ -45,19 +45,16 @@ export interface ProdutosPagina {
   paginacao: InfoPagina
 }
 
-/** `query` é uma query string já montada (categoria, marca, precoMin, precoMax, busca, disponivel, ordenar, pagina, limite). */
 export const listarProdutos = (query: string) => api<ProdutosPagina>(`/catalogo/produtos?${query}`)
 
 export const buscarProduto = (id: string) => api<Produto>(`/catalogo/produtos/${encodeURIComponent(id)}`)
 
-// Categorias quase não mudam: uma busca só por sessão, compartilhada por todos os componentes (refaz se falhar).
 let categorias: Promise<Categoria[]> | null = null
 export const listarCategorias = () =>
   (categorias ??= api<Categoria[]>('/catalogo/categorias').catch((e: unknown) => {
     categorias = null
     throw e
   }))
-/** O painel mexe nas categorias: esquece a lista guardada para a loja buscar de novo. */
 export const esquecerCategorias = () => {
   categorias = null
 }
