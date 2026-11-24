@@ -10,7 +10,7 @@ import { useProdutosPorId } from '../hooks/useProdutosPorId'
 import { ApiError, statusDe } from '../lib/api'
 import { formatarCep, linhaCidade, linhaRua } from '../lib/enderecos'
 import { dataHora, formatarPreco } from '../lib/formatar'
-import { iniciarPagamento } from '../lib/pagamentos'
+import { iniciarPagamento, urlDePagamentoSegura } from '../lib/pagamentos'
 import { buscarPedido, type Pedido } from '../lib/pedidos'
 
 /** `erro`: falhou por outro motivo que não "não existe / não é seu" (rede, servidor), então vale tentar de novo. */
@@ -27,6 +27,7 @@ export default function CheckoutPagamento() {
   const [mensagem, setMensagem] = useState<{ tom: TomAviso; texto: string } | null>(null)
   const [aprovado, setAprovado] = useState(false)
   const [tentativa, setTentativa] = useState(0)
+  const [redirecionando, setRedirecionando] = useState(false)
 
   useEffect(() => {
     let ativo = true
@@ -37,6 +38,17 @@ export default function CheckoutPagamento() {
       ativo = false
     }
   }, [id, tentativa])
+
+  // Voltar do Mercado Pago pelo botão do navegador pode restaurar esta página como estava (cache de ida e volta).
+  useEffect(() => {
+    const aoMostrar = (e: PageTransitionEvent) => {
+      if (!e.persisted) return
+      setRedirecionando(false)
+      setPagando(false)
+    }
+    window.addEventListener('pageshow', aoMostrar)
+    return () => window.removeEventListener('pageshow', aoMostrar)
+  }, [])
 
   const carregarDeNovo = () => {
     setCarga(null)
@@ -110,9 +122,17 @@ export default function CheckoutPagamento() {
   const pagar = async () => {
     setMensagem(null)
     setPagando(true)
+    let redirecionou = false
     try {
       const pagamento = await iniciarPagamento(pedido.id_pedido, pedido.valor_total)
       if (pagamento.url_pagamento) {
+        if (!urlDePagamentoSegura(pagamento.url_pagamento)) {
+          setMensagem({ tom: 'erro', texto: 'Não foi possível abrir o Mercado Pago. Tente novamente em instantes.' })
+          return
+        }
+        // O botão continua bloqueado até a página trocar: um segundo clique criaria outro pagamento.
+        redirecionou = true
+        setRedirecionando(true)
         window.location.assign(pagamento.url_pagamento)
         return
       }
@@ -122,7 +142,7 @@ export default function CheckoutPagamento() {
     } catch (e) {
       setMensagem({ tom: 'erro', texto: e instanceof ApiError ? e.message : 'Não foi possível processar o pagamento. Tente novamente.' })
     } finally {
-      setPagando(false)
+      if (!redirecionou) setPagando(false)
     }
   }
 
@@ -174,7 +194,7 @@ export default function CheckoutPagamento() {
                 disabled={pagando}
                 className="w-full rounded-xl bg-success py-3.5 font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {pagando ? 'Processando...' : `Pagar agora ${formatarPreco(pedido.valor_total)}`}
+                {redirecionando ? 'Redirecionando para o Mercado Pago...' : pagando ? 'Processando...' : `Pagar agora ${formatarPreco(pedido.valor_total)}`}
               </button>
             </div>
           }
