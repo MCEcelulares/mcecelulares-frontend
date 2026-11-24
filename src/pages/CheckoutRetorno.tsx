@@ -1,11 +1,14 @@
-import type { ReactNode } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { useEffect, type ReactNode } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AlertTriangle, CheckCircle2, Clock, Loader2, PackageSearch, XCircle } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { classeBotao } from '../components/ui/botao'
 import { EstadoVazio } from '../components/ui/EstadoVazio'
 import { useConfirmarPagamento } from '../hooks/useConfirmarPagamento'
 import { lerRetornoMercadoPago } from '../lib/retornoMercadoPago'
+
+/** Tempo para o cliente ler a confirmação antes de ser levado ao pedido. */
+const ATRASO_PARA_O_PEDIDO_MS = 3000
 
 interface ResultadoProps {
   icone: LucideIcon
@@ -35,6 +38,16 @@ export default function CheckoutRetorno() {
   const [parametros] = useSearchParams()
   const { resultado, verificarNovamente } = useConfirmarPagamento(id)
   const { dica } = lerRetornoMercadoPago(parametros)
+  const navigate = useNavigate()
+
+  // Pagamento aprovado leva ao pedido. `replace` tira esta tela (e a URL com os parâmetros do Mercado Pago) do histórico:
+  // voltar ou atualizar a página não repete a confirmação. Sair antes cancela o temporizador.
+  const aprovado = resultado.situacao === 'aprovado'
+  useEffect(() => {
+    if (!aprovado) return
+    const temporizador = setTimeout(() => navigate(`/pedidos/${id}`, { replace: true }), ATRASO_PARA_O_PEDIDO_MS)
+    return () => clearTimeout(temporizador)
+  }, [aprovado, id, navigate])
 
   const verPedido = <Link to={`/pedidos/${id}`} className={classeBotao()}>Ver meu pedido</Link>
   const verPedidoSecundario = <Link to={`/pedidos/${id}`} className={classeBotao('contorno')}>Ver meu pedido</Link>
@@ -56,7 +69,7 @@ export default function CheckoutRetorno() {
           icone={CheckCircle2}
           classeIcone="text-success"
           titulo="Pagamento aprovado!"
-          descricao={<>Seu pedido <strong>#{id}</strong> foi confirmado.</>}
+          descricao={<>Seu pedido <strong>#{id}</strong> foi confirmado. Você será levado ao pedido em instantes.</>}
         >
           {verPedido}
           {continuar}
