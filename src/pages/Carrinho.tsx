@@ -7,7 +7,7 @@ import { Carregando } from '../components/ui/Carregando'
 import { EstadoVazio } from '../components/ui/EstadoVazio'
 import { useCarrinho } from '../hooks/useCarrinho'
 import { useProdutosPorId } from '../hooks/useProdutosPorId'
-import { ApiError } from '../lib/api'
+import { mensagemDe } from '../lib/api'
 import { Miniatura } from '../components/ui/Miniatura'
 import type { Produto } from '../lib/catalogo'
 import { formatarPreco } from '../lib/formatar'
@@ -95,7 +95,7 @@ export default function Carrinho() {
     try {
       await acao()
     } catch (e) {
-      setErro(e instanceof ApiError ? e.message : 'Não foi possível atualizar o carrinho. Tente novamente.')
+      setErro(mensagemDe(e, 'Não foi possível atualizar o carrinho. Tente novamente.'))
     } finally {
       setPendentes((p) => {
         const novo = new Set(p)

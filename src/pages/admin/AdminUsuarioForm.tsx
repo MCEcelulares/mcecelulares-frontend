@@ -11,15 +11,13 @@ import { useAuth } from '../../hooks/useAuth'
 import { useConsulta } from '../../hooks/useConsulta'
 import { type Erros, useFormulario } from '../../hooks/useFormulario'
 import { alterarStatusUsuario, atualizarUsuario, buscarUsuario, definirCargos, listarCargos } from '../../lib/admin'
-import { ApiError, statusDe } from '../../lib/api'
+import { mensagemDe, statusDe } from '../../lib/api'
 import type { Perfil } from '../../lib/auth'
 import { mascararCpf, mascararTelefone } from '../../lib/mascaras'
 import { PERMISSAO, temPermissao } from '../../lib/permissoes'
 import { cpfValido, emailValido, telefoneValido } from '../../lib/validacao'
 
 type Valores = { nome: string; email: string; cpf: string; telefone: string }
-
-const mensagemDe = (e: unknown, padrao: string) => (e instanceof ApiError ? e.message : padrao)
 
 function DadosDoUsuario({ perfil, aoSalvar }: { perfil: Perfil; aoSalvar: () => Promise<unknown> }) {
   const [salvo, setSalvo] = useState(false)

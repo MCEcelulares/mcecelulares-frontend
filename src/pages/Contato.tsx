@@ -151,7 +151,7 @@ function Atendimento() {
         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"><Mail size={22} /></span>
         <div className="min-w-0">
           <h2 className="titulo-card">E-mail</h2>
-          <a href={`mailto:${EMPRESA.emailSuporte}`} className="block truncate font-semibold text-emerald-600 hover:underline">{EMPRESA.emailSuporte}</a>
+          <a href={`mailto:${EMPRESA.emailSuporte}`} className="block font-semibold break-all text-emerald-600 hover:underline">{EMPRESA.emailSuporte}</a>
         </div>
       </section>
 
