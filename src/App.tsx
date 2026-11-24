@@ -19,6 +19,8 @@ import AdminInicio from './pages/admin/AdminInicio'
 import { AdminCategorias, AdminMarcas } from './pages/admin/AdminCategoriasMarcas'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminProdutoForm from './pages/admin/AdminProdutoForm'
+import AdminUsuarioForm from './pages/admin/AdminUsuarioForm'
+import AdminUsuarios from './pages/admin/AdminUsuarios'
 import AdminProdutos from './pages/admin/AdminProdutos'
 import ContaLayout from './pages/conta/ContaLayout'
 import DadosConta from './pages/conta/DadosConta'
@@ -55,6 +57,10 @@ export default function App() {
                 <Route path="produtos/:id" element={<AdminProdutoForm />} />
                 <Route path="categorias" element={<AdminCategorias />} />
                 <Route path="marcas" element={<AdminMarcas />} />
+              </Route>
+              <Route element={<ExigePermissao permissao={PERMISSAO.usuariosListar} />}>
+                <Route path="usuarios" element={<AdminUsuarios />} />
+                <Route path="usuarios/:id" element={<AdminUsuarioForm />} />
               </Route>
             </Route>
           </Route>
