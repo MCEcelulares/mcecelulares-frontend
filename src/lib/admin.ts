@@ -171,3 +171,34 @@ export const PROXIMO_STATUS: Partial<Record<StatusPedido, { status: StatusPedido
 }
 
 export const PODE_CANCELAR: StatusPedido[] = ['AGUARDANDO_PAGAMENTO', 'PAGO']
+
+// ---- Painel de vendas
+
+export interface ResumoDeVendas {
+  total_pedidos: number
+  pedidos_por_status: Record<StatusPedido, number>
+  pedidos_ultimas_24h: number
+  receita_total: number
+  /** `dia` vem como AAAA-MM-DD (relógio do banco). */
+  receita_por_dia: { dia: string; receita: number; pedidos: number }[]
+}
+
+export interface ProdutoMaisVendido {
+  id_produto: number | null
+  nome_produto: string
+  quantidade_vendida: number
+  receita: number
+}
+
+/** A receita só conta pedidos pagos, enviados e entregues. `dias` é a janela do gráfico por dia. Exige "dashboard:ver". */
+export const resumoDeVendas = (dias: number) =>
+  apiAutenticada<ResumoDeVendas>(`/vendas/pedidos/resumo?dias=${dias}`).then((r) => ({
+    ...r,
+    receita_total: Number(r.receita_total),
+    receita_por_dia: r.receita_por_dia.map((d) => ({ ...d, receita: Number(d.receita) })),
+  }))
+
+export const maisVendidos = (limite: number) =>
+  apiAutenticada<ProdutoMaisVendido[]>(`/vendas/pedidos/mais-vendidos?limite=${limite}`).then((l) =>
+    l.map((p) => ({ ...p, receita: Number(p.receita) })),
+  )
