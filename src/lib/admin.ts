@@ -1,5 +1,6 @@
 import { apiAutenticada } from './auth'
-import type { Categoria, Marca, Produto, ProdutosPagina } from './catalogo'
+import type { Perfil } from './auth'
+import type { Categoria, InfoPagina, Marca, Produto, ProdutosPagina } from './catalogo'
 
 // Chamadas do painel administrativo. Todas exigem login; o back-end confere a permissão de cada rota.
 
@@ -68,3 +69,55 @@ export const enviarImagem = (id: number, arquivo: File) => {
 }
 
 export const removerImagem = (id: number) => apiAutenticada<void>(`/catalogo/produtos/${id}/imagem`, { method: 'DELETE' })
+
+// ---- Usuários e cargos (identidade)
+
+export interface UsuarioResumo {
+  id_usuario: number
+  nome: string
+  email: string
+  cpf: string | null
+  telefone: string | null
+  ativo: boolean
+  provedor: string
+  email_verificado: boolean
+  cargos: { id_cargo: number; nome: string }[]
+}
+
+export interface UsuariosPagina {
+  dados: UsuarioResumo[]
+  paginacao: InfoPagina
+}
+
+export interface Cargo {
+  id_cargo: number
+  nome: string
+  protegido: boolean
+  permissoes: string[]
+}
+
+/** `query`: page, limit, busca, cargo (nome) e ativo (true/false). */
+export const listarUsuarios = (query: string) => apiAutenticada<UsuariosPagina>(`/identidade/usuarios?${query}`)
+
+export const buscarUsuario = (id: string) => apiAutenticada<Perfil>(`/identidade/usuarios/${encodeURIComponent(id)}`)
+
+export interface DadosUsuario {
+  nome: string
+  email: string
+  cpf: string
+  telefone: string
+}
+
+/** Só os campos informados mudam. 409 quando o e-mail ou o CPF já pertence a outra conta. */
+export const atualizarUsuario = (id: number, dados: Partial<DadosUsuario>) =>
+  apiAutenticada<Perfil>(`/identidade/usuarios/${id}`, { method: 'PATCH', json: dados })
+
+/** 409 se for o próprio usuário ou o último administrador ativo. Desativar encerra as sessões da pessoa. */
+export const alterarStatusUsuario = (id: number, ativo: boolean) =>
+  apiAutenticada<Perfil>(`/identidade/usuarios/${id}/status`, { method: 'PATCH', json: { ativo } })
+
+/** Substitui todos os cargos do usuário (pelo menos um). Vale no próximo login da pessoa. */
+export const definirCargos = (id: number, cargos: string[]) =>
+  apiAutenticada<Perfil>(`/identidade/usuarios/${id}/cargos`, { method: 'PUT', json: { cargos } })
+
+export const listarCargos = () => apiAutenticada<Cargo[]>('/identidade/cargos')
