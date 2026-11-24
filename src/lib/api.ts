@@ -18,18 +18,20 @@ export const statusDe = (e: unknown) => (e instanceof ApiError ? e.status : 0)
 export interface ApiInit extends Omit<RequestInit, 'body'> {
   /** Corpo JSON (serializado automaticamente). */
   json?: unknown
+  /** Corpo multipart (envio de arquivo). O navegador define o Content-Type com o separador. */
+  formData?: FormData
   /** Access token JWT; vira o header Authorization. */
   token?: string | null
 }
 
-export async function api<T>(path: string, { json, token, ...init }: ApiInit = {}): Promise<T> {
+export async function api<T>(path: string, { json, formData, token, ...init }: ApiInit = {}): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json', ...(init.headers as Record<string, string>) }
   if (json !== undefined) headers['Content-Type'] = 'application/json'
   if (token) headers.Authorization = `Bearer ${token}`
 
   let res: Response
   try {
-    res = await fetch(`${API_URL}${path}`, { ...init, headers, body: json !== undefined ? JSON.stringify(json) : undefined })
+    res = await fetch(`${API_URL}${path}`, { ...init, headers, body: json !== undefined ? JSON.stringify(json) : formData })
   } catch {
     // fetch só lança quando não chega ao servidor (offline, servidor fora do ar, CORS); status 0 = sem resposta
     throw new ApiError('Sem conexão com o servidor. Verifique sua internet e tente novamente.', 0)

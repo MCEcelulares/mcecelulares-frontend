@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, PackageSearch } from 'lucide-react'
+import { AjusteDeEstoque, ImagemDoProduto } from '../../components/admin/EstoqueEImagem'
 import { Aviso } from '../../components/ui/Aviso'
 import { classeBotao } from '../../components/ui/botao'
 import { Campo, CampoSelect, CampoTexto } from '../../components/ui/Campo'
@@ -96,11 +97,11 @@ function FormProduto({ produto }: { produto: Produto | null }) {
           label={produto ? 'Estoque atual' : 'Estoque inicial'}
           name="estoque"
           inputMode="numeric"
-          value={valores.estoque}
+          value={produto ? String(produto.estoque) : valores.estoque}
           onChange={(e) => alterar('estoque', e.target.value)}
           erro={erros.estoque}
           readOnly={produto !== null}
-          dica={produto ? 'O estoque muda por ajuste (soma ou subtração), não por edição.' : undefined}
+          dica={produto ? 'Para mudar, use o ajuste de estoque abaixo.' : undefined}
         />
         <CampoSelect label="Categoria" name="id_categoria" value={valores.id_categoria} onChange={(e) => alterar('id_categoria', e.target.value)} erro={erros.id_categoria} disabled={opcoes}>
           <option value="">Escolha...</option>
@@ -130,7 +131,7 @@ function FormProduto({ produto }: { produto: Produto | null }) {
 }
 
 function EditarProduto({ id }: { id: string }) {
-  const { dados, erro, carregando } = useConsulta(buscarProdutoAdmin, id)
+  const { dados, erro, carregando, recarregar } = useConsulta(buscarProdutoAdmin, id)
 
   if (carregando) return <Carregando />
   if (erro || !dados) {
@@ -141,7 +142,15 @@ function EditarProduto({ id }: { id: string }) {
       </EstadoVazio>
     )
   }
-  return <FormProduto key={dados.id_produto} produto={dados} />
+  return (
+    <div>
+      <FormProduto key={dados.id_produto} produto={dados} />
+      <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
+        <AjusteDeEstoque produto={dados} aoMudar={recarregar} />
+        <ImagemDoProduto produto={dados} aoMudar={recarregar} />
+      </div>
+    </div>
+  )
 }
 
 export default function AdminProdutoForm() {

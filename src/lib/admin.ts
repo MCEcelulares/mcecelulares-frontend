@@ -53,3 +53,18 @@ export const atualizarMarca = (id: number, dados: Partial<DadosSimples>) =>
   apiAutenticada<Marca>(`/catalogo/marcas/${id}`, { method: 'PATCH', json: dados })
 /** 409 quando ainda há produtos ligados à marca. */
 export const excluirMarca = (id: number) => apiAutenticada<void>(`/catalogo/marcas/${id}`, { method: 'DELETE' })
+
+// ---- Estoque e imagem de um produto
+
+/** `ajuste` positivo soma e negativo subtrai. 409 quando o estoque ficaria negativo. */
+export const ajustarEstoque = (id: number, ajuste: number) =>
+  apiAutenticada<Produto>(`/catalogo/produtos/${id}/estoque`, { method: 'PATCH', json: { ajuste } }).then(normalizarProduto)
+
+/** JPEG, PNG ou WEBP de até 2 MB; o back-end confere o tipo pelos bytes do arquivo. */
+export const enviarImagem = (id: number, arquivo: File) => {
+  const corpo = new FormData()
+  corpo.append('imagem', arquivo)
+  return apiAutenticada<{ id_produto: number; imagem: string }>(`/catalogo/produtos/${id}/imagem`, { method: 'POST', formData: corpo })
+}
+
+export const removerImagem = (id: number) => apiAutenticada<void>(`/catalogo/produtos/${id}/imagem`, { method: 'DELETE' })
