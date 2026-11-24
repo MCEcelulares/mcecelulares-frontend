@@ -6,7 +6,7 @@ import { classeBotao } from '../../components/ui/botao'
 import { EstadoVazio } from '../../components/ui/EstadoVazio'
 import { useAuth } from '../../hooks/useAuth'
 import { useConsulta } from '../../hooks/useConsulta'
-import { ApiError } from '../../lib/api'
+import { mensagemDe } from '../../lib/api'
 import { formatarCep, linhaCidade, linhaRua, listarEnderecos, marcarEnderecoPrincipal, removerEndereco, type Endereco } from '../../lib/enderecos'
 
 type Modo = { tipo: 'lista' } | { tipo: 'novo' } | { tipo: 'editar'; id: number } | { tipo: 'excluir'; id: number }
@@ -27,7 +27,7 @@ export default function EnderecosConta() {
       await recarregar()
       setModo({ tipo: 'lista' })
     } catch (e) {
-      setErro(e instanceof ApiError ? e.message : 'Não foi possível concluir a ação. Tente novamente.')
+      setErro(mensagemDe(e, 'Não foi possível concluir a ação. Tente novamente.'))
     } finally {
       setOcupado(null)
     }

@@ -7,7 +7,7 @@ import { classeBotao } from '../components/ui/botao'
 import { Carregando } from '../components/ui/Carregando'
 import { EstadoVazio } from '../components/ui/EstadoVazio'
 import { useProdutosPorId } from '../hooks/useProdutosPorId'
-import { ApiError, statusDe } from '../lib/api'
+import { mensagemDe, statusDe } from '../lib/api'
 import { formatarCep, linhaCidade, linhaRua } from '../lib/enderecos'
 import { dataHora, formatarPreco } from '../lib/formatar'
 import { iniciarPagamento, urlDePagamentoSegura } from '../lib/pagamentos'
@@ -155,7 +155,7 @@ export default function CheckoutPagamento() {
       else setMensagem({ tom: 'info', texto: 'Seu pagamento está em processamento. Aguarde a confirmação.' })
     } catch (e) {
       aba?.close()
-      setMensagem({ tom: 'erro', texto: e instanceof ApiError ? e.message : 'Não foi possível processar o pagamento. Tente novamente.' })
+      setMensagem({ tom: 'erro', texto: mensagemDe(e, 'Não foi possível processar o pagamento. Tente novamente.') })
     } finally {
       if (!redirecionou) setPagando(false)
     }

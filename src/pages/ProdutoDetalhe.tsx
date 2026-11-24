@@ -7,7 +7,7 @@ import { EstadoVazio } from '../components/ui/EstadoVazio'
 import { useAuth } from '../hooks/useAuth'
 import { useCarrinho } from '../hooks/useCarrinho'
 import { useConsulta } from '../hooks/useConsulta'
-import { ApiError, statusDe, urlImagem } from '../lib/api'
+import { mensagemDe, statusDe, urlImagem } from '../lib/api'
 import { buscarProduto, listarProdutos, type Produto } from '../lib/catalogo'
 import { formatarPreco } from '../lib/formatar'
 
@@ -99,7 +99,7 @@ function Detalhe({ produto }: { produto: Produto }) {
       await adicionar(produto.id_produto, quantidade)
       setResultado({ ok: true, texto: quantidade === 1 ? 'Produto adicionado ao carrinho.' : `${quantidade} unidades adicionadas ao carrinho.` })
     } catch (e) {
-      setResultado({ ok: false, texto: e instanceof ApiError ? e.message : 'Não foi possível adicionar ao carrinho. Tente novamente.' })
+      setResultado({ ok: false, texto: mensagemDe(e, 'Não foi possível adicionar ao carrinho. Tente novamente.') })
     } finally {
       setAdicionando(false)
     }

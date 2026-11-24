@@ -5,7 +5,7 @@ import { classeBotao } from '../ui/botao'
 import { Campo } from '../ui/Campo'
 import { Miniatura } from '../ui/Miniatura'
 import { ajustarEstoque, enviarImagem, removerImagem } from '../../lib/admin'
-import { ApiError } from '../../lib/api'
+import { mensagemDe } from '../../lib/api'
 import type { Produto } from '../../lib/catalogo'
 import { BotaoConfirmar } from './BotaoConfirmar'
 
@@ -14,8 +14,6 @@ interface Props {
   /** Chamado depois de uma alteração, para a tela buscar o produto de novo. */
   aoMudar: () => Promise<unknown>
 }
-
-const mensagemDe = (e: unknown, padrao: string) => (e instanceof ApiError ? e.message : padrao)
 
 export function AjusteDeEstoque({ produto, aoMudar }: Props) {
   const [ajuste, setAjuste] = useState('')
