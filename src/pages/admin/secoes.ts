@@ -1,4 +1,5 @@
-import type { LucideIcon } from 'lucide-react'
+import { Package, type LucideIcon } from 'lucide-react'
+import { PERMISSAO } from '../../lib/permissoes'
 
 export interface SecaoAdmin {
   to: string
@@ -10,4 +11,6 @@ export interface SecaoAdmin {
 }
 
 /** Seções do painel, na ordem do menu. Cada tela do painel acrescenta a sua aqui. */
-export const SECOES: SecaoAdmin[] = []
+export const SECOES: SecaoAdmin[] = [
+  { to: '/admin/produtos', rotulo: 'Produtos', descricao: 'Cadastre, edite e inative os produtos da loja.', icone: Package, permissao: PERMISSAO.catalogo },
+]

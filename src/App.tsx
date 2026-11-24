@@ -17,6 +17,8 @@ import PedidoDetalhe from './pages/PedidoDetalhe'
 import Pedidos from './pages/Pedidos'
 import AdminInicio from './pages/admin/AdminInicio'
 import AdminLayout from './pages/admin/AdminLayout'
+import AdminProdutoForm from './pages/admin/AdminProdutoForm'
+import AdminProdutos from './pages/admin/AdminProdutos'
 import ContaLayout from './pages/conta/ContaLayout'
 import DadosConta from './pages/conta/DadosConta'
 import EnderecosConta from './pages/conta/EnderecosConta'
@@ -46,6 +48,11 @@ export default function App() {
           <Route path="admin" element={<ExigePermissao permissao={PERMISSAO.painel} />}>
             <Route element={<AdminLayout />}>
               <Route index element={<AdminInicio />} />
+              <Route element={<ExigePermissao permissao={PERMISSAO.catalogo} />}>
+                <Route path="produtos" element={<AdminProdutos />} />
+                <Route path="produtos/novo" element={<AdminProdutoForm />} />
+                <Route path="produtos/:id" element={<AdminProdutoForm />} />
+              </Route>
             </Route>
           </Route>
         </Route>
