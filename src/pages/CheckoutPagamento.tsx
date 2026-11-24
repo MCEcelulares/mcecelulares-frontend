@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AlertTriangle, CheckCircle2, Clock, MapPin, PackageSearch, ShieldCheck } from 'lucide-react'
 import { ResumoItens } from '../components/checkout/ResumoItens'
 import { Aviso, type TomAviso } from '../components/ui/Aviso'
@@ -22,6 +22,7 @@ function Centralizado({ children }: { children: React.ReactNode }) {
 
 export default function CheckoutPagamento() {
   const { id = '' } = useParams()
+  const navigate = useNavigate()
   const [carga, setCarga] = useState<Carga | null>(null)
   const [pagando, setPagando] = useState(false)
   const [mensagem, setMensagem] = useState<{ tom: TomAviso; texto: string } | null>(null)
@@ -122,24 +123,38 @@ export default function CheckoutPagamento() {
   const pagar = async () => {
     setMensagem(null)
     setPagando(true)
+    // A aba é aberta já no clique: depois de um await o navegador a trataria como pop-up e a bloquearia. Ela espera em
+    // branco pelo link do Mercado Pago. Sem `opener`, a página do Mercado Pago não alcança esta loja.
+    const aba = window.open('about:blank', '_blank')
+    if (aba) aba.opener = null
     let redirecionou = false
     try {
       const pagamento = await iniciarPagamento(pedido.id_pedido, pedido.valor_total)
       if (pagamento.url_pagamento) {
         if (!urlDePagamentoSegura(pagamento.url_pagamento)) {
+          aba?.close()
           setMensagem({ tom: 'erro', texto: 'Não foi possível abrir o Mercado Pago. Tente novamente em instantes.' })
           return
         }
-        // O botão continua bloqueado até a página trocar: um segundo clique criaria outro pagamento.
+        // O botão continua bloqueado até esta página sair: um segundo clique criaria outro pagamento.
         redirecionou = true
+        if (aba) {
+          // O pagamento segue na aba nova; esta aba mostra o pedido, onde o cliente confere o resultado ("Já paguei").
+          aba.location.href = pagamento.url_pagamento
+          navigate(`/pedidos/${pedido.id_pedido}`)
+          return
+        }
+        // Pop-up bloqueado: segue na mesma aba.
         setRedirecionando(true)
         window.location.assign(pagamento.url_pagamento)
         return
       }
+      aba?.close() // gateway simulado: não há link, o resultado vem na resposta
       if (pagamento.status === 'APROVADO') setAprovado(true)
       else if (pagamento.status === 'RECUSADO') setMensagem({ tom: 'atencao', texto: 'O pagamento foi recusado. Você pode tentar novamente.' })
       else setMensagem({ tom: 'info', texto: 'Seu pagamento está em processamento. Aguarde a confirmação.' })
     } catch (e) {
+      aba?.close()
       setMensagem({ tom: 'erro', texto: e instanceof ApiError ? e.message : 'Não foi possível processar o pagamento. Tente novamente.' })
     } finally {
       if (!redirecionou) setPagando(false)
@@ -177,7 +192,7 @@ export default function CheckoutPagamento() {
 
           <section className="cartao p-6">
             <h2 className="flex items-center gap-2 titulo-card"><ShieldCheck size={18} className="text-success" /> Forma de pagamento</h2>
-            <p className="mt-3 text-sm text-slate-600">Ao clicar em <strong>Pagar agora</strong>, seu pagamento é processado com segurança.</p>
+            <p className="mt-3 text-sm text-slate-600">Ao clicar em <strong>Pagar agora</strong>, seu pagamento é processado com segurança. O Mercado Pago abre em uma nova aba, e esta aba passa a mostrar seu pedido.</p>
           </section>
         </div>
 
