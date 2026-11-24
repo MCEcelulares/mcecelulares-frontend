@@ -36,3 +36,20 @@ export const atualizarProduto = (id: number, dados: Partial<DadosProduto>) =>
 
 export const listarCategoriasAdmin = () => apiAutenticada<Categoria[]>('/catalogo/categorias?incluirInativos=true')
 export const listarMarcasAdmin = () => apiAutenticada<Marca[]>('/catalogo/marcas?incluirInativos=true')
+
+export interface DadosSimples {
+  nome: string
+  ativo: boolean
+}
+
+export const criarCategoria = (dados: DadosSimples) => apiAutenticada<Categoria>('/catalogo/categorias', { method: 'POST', json: dados })
+export const atualizarCategoria = (id: number, dados: Partial<DadosSimples>) =>
+  apiAutenticada<Categoria>(`/catalogo/categorias/${id}`, { method: 'PATCH', json: dados })
+/** 409 quando ainda há produtos ligados à categoria. */
+export const excluirCategoria = (id: number) => apiAutenticada<void>(`/catalogo/categorias/${id}`, { method: 'DELETE' })
+
+export const criarMarca = (dados: DadosSimples) => apiAutenticada<Marca>('/catalogo/marcas', { method: 'POST', json: dados })
+export const atualizarMarca = (id: number, dados: Partial<DadosSimples>) =>
+  apiAutenticada<Marca>(`/catalogo/marcas/${id}`, { method: 'PATCH', json: dados })
+/** 409 quando ainda há produtos ligados à marca. */
+export const excluirMarca = (id: number) => apiAutenticada<void>(`/catalogo/marcas/${id}`, { method: 'DELETE' })
