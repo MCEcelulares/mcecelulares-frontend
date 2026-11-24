@@ -9,6 +9,7 @@ import {
   Package,
   Smartphone,
   Tablet,
+  Watch,
   Disc3,
   type LucideIcon,
 } from 'lucide-react'
@@ -20,12 +21,14 @@ const ICONES: Record<string, LucideIcon> = {
   smartphones: Smartphone,
   celulares: Smartphone,
   tablets: Tablet,
+  smartwatches: Watch,
   notebooks: Laptop,
   consoles: Gamepad2,
   jogos: Disc3,
   monitores: Monitor,
   perifericos: Mouse,
   audio: Headphones,
+  fones: Headphones,
   computadores: MonitorSmartphone,
 }
 
