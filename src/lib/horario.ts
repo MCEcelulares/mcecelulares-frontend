@@ -1,11 +1,8 @@
-// Horário de atendimento da loja (fuso de Corbélia/PR, independente do fuso de quem acessa o site).
 const FUSO = 'America/Sao_Paulo'
 
 interface Faixa {
   rotulo: string
-  /** 0 = domingo ... 6 = sábado */
   dias: number[]
-  /** null = fechado */
   horas: { abre: string; fecha: string } | null
 }
 
@@ -18,7 +15,6 @@ export const HORARIOS: Faixa[] = [
 const DIAS_CURTOS: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
 const emMinutos = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5))
 
-/** Dia da semana (0-6) e se a loja está aberta neste instante, no fuso da loja. */
 export function situacaoAgora(agora = new Date()) {
   const partes = new Intl.DateTimeFormat('en-US', { timeZone: FUSO, weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(agora)
   const valor = (tipo: string) => partes.find((p) => p.type === tipo)?.value ?? ''

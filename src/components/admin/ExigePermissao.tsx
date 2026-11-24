@@ -5,7 +5,6 @@ import { temPermissao } from '../../lib/permissoes'
 import { classeBotao } from '../ui/botao'
 import { EstadoVazio } from '../ui/EstadoVazio'
 
-/** Só mostra as rotas filhas a quem tem a permissão; os demais veem "acesso negado". O back-end confere de novo em cada chamada. */
 export function ExigePermissao({ permissao }: { permissao: string }) {
   const { usuario } = useAuth()
 

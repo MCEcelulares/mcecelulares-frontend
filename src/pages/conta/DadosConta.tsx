@@ -10,7 +10,6 @@ import { formatarCep, linhaCidade, linhaRua, listarEnderecos } from '../../lib/e
 import { mascararCpf, mascararTelefone, soDigitos } from '../../lib/mascaras'
 import { cpfValido, telefoneValido } from '../../lib/validacao'
 
-
 function EnderecoPrincipal({ idUsuario }: { idUsuario: number }) {
   const { dados: enderecos, carregando } = useConsulta(listarEnderecos, idUsuario)
   const principal = enderecos?.find((e) => e.principal) ?? enderecos?.[0]
@@ -42,7 +41,7 @@ function EnderecoPrincipal({ idUsuario }: { idUsuario: number }) {
 
 export default function DadosConta() {
   const { usuario, atualizarPerfil } = useAuth()
-  const perfil = usuario! // a rota é protegida
+  const perfil = usuario!
 
   const inicial = {
     nome: perfil.nome,

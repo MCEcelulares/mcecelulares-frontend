@@ -7,7 +7,6 @@ import { classeBotao } from '../ui/botao'
 interface ShellProps {
   titulo: string
   subtitulo: string
-  /** Proporção das colunas no desktop: card do formulário | painel lateral. */
   colunas?: string
   card: ReactNode
   painel: ReactNode
@@ -86,5 +85,4 @@ export function PainelBeneficios({ icone: Icone, titulo, descricao, itens, rodap
   )
 }
 
-/** Erro de formulário: o mesmo aviso do resto do site (`Aviso` no tom de erro). */
 export const AlertaErro = ({ mensagem }: { mensagem: string }) => <Aviso tom="erro">{mensagem}</Aviso>

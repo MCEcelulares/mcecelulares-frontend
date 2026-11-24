@@ -16,7 +16,6 @@ import { classeBotao } from '../../components/ui/botao'
 
 const LIMITE = 10
 
-// Sem a permissão de ver cargos o filtro some em vez de dar erro na tela.
 const cargosDoFiltro = () => listarCargos().catch(() => [])
 
 export default function AdminUsuarios() {

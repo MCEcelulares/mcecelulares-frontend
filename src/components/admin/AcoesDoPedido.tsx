@@ -9,11 +9,9 @@ import { BotaoConfirmar } from './BotaoConfirmar'
 interface Props {
   idPedido: number
   status: StatusPedido
-  /** Chamado depois de mudar o status, para a tela buscar os dados de novo. */
   aoMudar: () => Promise<unknown>
 }
 
-/** Botões de status só para as transições permitidas e só para quem tem a permissão; o back-end confere de novo. */
 export function AcoesDoPedido({ idPedido, status, aoMudar }: Props) {
   const { usuario } = useAuth()
   const [erro, setErro] = useState<string | null>(null)

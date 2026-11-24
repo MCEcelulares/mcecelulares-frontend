@@ -12,7 +12,6 @@ import { StatusBadge } from './StatusBadge'
 const rotulo = 'text-[11px] font-semibold tracking-wide text-slate-500 uppercase'
 
 export function CartaoPedido({ resumo }: { resumo: PedidoResumo }) {
-  // undefined = carregando os itens; null = falhou
   const [detalhe, setDetalhe] = useState<Pedido | null | undefined>(undefined)
   const { executar, executando, resultado } = useComprarNovamente()
 

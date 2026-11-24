@@ -13,7 +13,7 @@ type Modo = { tipo: 'lista' } | { tipo: 'novo' } | { tipo: 'editar'; id: number 
 
 export default function EnderecosConta() {
   const { usuario } = useAuth()
-  const idUsuario = usuario!.id_usuario // a rota é protegida
+  const idUsuario = usuario!.id_usuario
   const { dados: enderecos, carregando, erro: erroCarga, recarregar } = useConsulta(listarEnderecos, idUsuario)
   const [modo, setModo] = useState<Modo>({ tipo: 'lista' })
   const [ocupado, setOcupado] = useState<number | null>(null)

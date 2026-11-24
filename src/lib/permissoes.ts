@@ -1,6 +1,5 @@
 import type { Perfil } from './auth'
 
-/** Permissões do back-end (identidade-service/src/config/rbac.ts) que o painel administrativo usa. */
 export const PERMISSAO = {
   painel: 'painel:acessar',
   dashboard: 'dashboard:ver',

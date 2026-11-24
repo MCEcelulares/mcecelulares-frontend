@@ -22,7 +22,6 @@ export function CarrinhoProvider({ children }: { children: ReactNode }) {
     }
   }, [idUsuario])
 
-  // Estado derivado: o carrinho guardado só vale para o usuário atual (some sozinho ao sair).
   const atual = estado && estado.idUsuario === idUsuario ? estado : null
   const carrinho = atual?.carrinho ?? null
   const erro = atual?.erro === true

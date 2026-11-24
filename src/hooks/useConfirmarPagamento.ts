@@ -2,11 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { mensagemDe, statusDe } from '../lib/api'
 import { sincronizarPagamento, type Pagamento, type StatusPagamento } from '../lib/pagamentos'
 
-/** O que sabemos do pagamento depois de perguntar ao back-end (nunca o que a URL de retorno diz). */
 export type ResultadoConfirmacao =
   | { situacao: 'confirmando' }
   | { situacao: 'aprovado' | 'pendente' | 'recusado' | 'reembolsar'; pagamento: Pagamento }
-  /** 404: o cliente chegou aqui sem ter iniciado um pagamento para este pedido. */
   | { situacao: 'sem_pagamento' }
   | { situacao: 'erro'; mensagem: string; status: number }
 
@@ -17,7 +15,6 @@ const SITUACOES = new Map<StatusPagamento, 'aprovado' | 'pendente' | 'recusado' 
   ['REEMBOLSAR', 'reembolsar'],
 ])
 
-// Nunca rejeita: sucesso e falha viram o mesmo formato.
 function consultar(idPedido: string): Promise<ResultadoConfirmacao> {
   if (!/^[1-9]\d*$/.test(idPedido)) {
     return Promise.resolve({ situacao: 'erro', mensagem: 'Pedido inválido.', status: 400 })
@@ -35,12 +32,6 @@ function consultar(idPedido: string): Promise<ResultadoConfirmacao> {
   )
 }
 
-/**
- * Pergunta ao back-end, uma única vez por pedido, se o pagamento já foi confirmado no Mercado Pago.
- * O modo estrito do React roda os efeitos duas vezes em desenvolvimento; como `sincronizar` consulta o Mercado Pago e conta
- * no limite de tentativas de pagamento, a primeira chamada fica guardada e a segunda execução apenas a reaproveita.
- * `verificarNovamente` faz uma nova consulta (botão manual, acompanhamento de pendência).
- */
 export function useConfirmarPagamento(idPedido: string) {
   const [guardado, setGuardado] = useState<{ id: string; resultado: ResultadoConfirmacao } | null>(null)
   const pedida = useRef<{ id: string; promessa: Promise<ResultadoConfirmacao> } | null>(null)
