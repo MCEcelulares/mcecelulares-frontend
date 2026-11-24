@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
+import { Aviso } from '../ui/Aviso'
 import { classeBotao } from '../ui/botao'
 
 interface ShellProps {
@@ -19,7 +20,7 @@ export function AuthShell({ titulo, subtitulo, colunas = 'lg:grid-cols-2', card,
         <h1 className="font-display text-4xl font-extrabold md:text-5xl">{titulo}</h1>
         <p className="mx-auto mt-3 max-w-2xl text-slate-600">{subtitulo}</p>
       </header>
-      <div className={`mt-10 grid items-start gap-8 ${colunas}`}>
+      <div className={`mt-10 grid items-start gap-8 [&>*]:min-w-0 ${colunas}`}>
         {card}
         {painel}
       </div>
@@ -85,10 +86,5 @@ export function PainelBeneficios({ icone: Icone, titulo, descricao, itens, rodap
   )
 }
 
-export function AlertaErro({ mensagem }: { mensagem: string }) {
-  return (
-    <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-      {mensagem}
-    </div>
-  )
-}
+/** Erro de formulário: o mesmo aviso do resto do site (`Aviso` no tom de erro). */
+export const AlertaErro = ({ mensagem }: { mensagem: string }) => <Aviso tom="erro">{mensagem}</Aviso>

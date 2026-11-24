@@ -10,7 +10,7 @@ import { Paginacao } from '../../components/ui/Paginacao'
 import { useAuth } from '../../hooks/useAuth'
 import { useConsulta } from '../../hooks/useConsulta'
 import { alterarStatusUsuario, listarCargos, listarUsuarios, type UsuarioResumo } from '../../lib/admin'
-import { ApiError } from '../../lib/api'
+import { mensagemDe } from '../../lib/api'
 import { PERMISSAO, temPermissao } from '../../lib/permissoes'
 import { classeBotao } from '../../components/ui/botao'
 
@@ -61,7 +61,7 @@ export default function AdminUsuarios() {
       await alterarStatusUsuario(u.id_usuario, ativo)
       await recarregar()
     } catch (e) {
-      setErroAcao(e instanceof ApiError ? e.message : 'Não foi possível alterar a conta. Tente novamente.')
+      setErroAcao(mensagemDe(e, 'Não foi possível alterar a conta. Tente novamente.'))
     }
   }
 

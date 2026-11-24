@@ -9,7 +9,7 @@ import { Carregando } from '../components/ui/Carregando'
 import { useAuth } from '../hooks/useAuth'
 import { useCarrinho } from '../hooks/useCarrinho'
 import { useProdutosPorId } from '../hooks/useProdutosPorId'
-import { ApiError } from '../lib/api'
+import { mensagemDe } from '../lib/api'
 import { formatarCep, linhaCidade, linhaRua, listarEnderecos, type Endereco } from '../lib/enderecos'
 import { criarPedido } from '../lib/pedidos'
 
@@ -85,7 +85,7 @@ export default function Checkout() {
       navigate(`/checkout/pagamento/${pedido.id_pedido}`, { replace: true })
       recarregar().catch(() => undefined) // criar o pedido encerra o carrinho; se falhar, o carrinho atualiza na próxima visita
     } catch (e) {
-      setErro(e instanceof ApiError ? e.message : 'Não foi possível criar o pedido. Tente novamente.')
+      setErro(mensagemDe(e, 'Não foi possível criar o pedido. Tente novamente.'))
       setCriando(false)
     }
   }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ApiError } from '../lib/api'
+import { mensagemDe } from '../lib/api'
 import type { ItemPedido } from '../lib/pedidos'
 import { useCarrinho } from './useCarrinho'
 
@@ -29,7 +29,7 @@ export function useComprarNovamente() {
         await adicionar(item.id_produto, item.quantidade)
         adicionados++
       } catch (e) {
-        falhas.push(`${item.nome_produto}: ${e instanceof ApiError ? e.message : 'não foi possível adicionar'}`)
+        falhas.push(`${item.nome_produto}: ${mensagemDe(e, 'não foi possível adicionar')}`)
       }
     }
 

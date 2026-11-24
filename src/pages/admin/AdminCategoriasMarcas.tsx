@@ -17,7 +17,7 @@ import {
   listarCategoriasAdmin,
   listarMarcasAdmin,
 } from '../../lib/admin'
-import { ApiError } from '../../lib/api'
+import { mensagemDe } from '../../lib/api'
 import { esquecerCategorias } from '../../lib/catalogo'
 
 interface Item {
@@ -79,7 +79,7 @@ function CadastroSimples({ config }: { config: Config }) {
       await recarregar()
       return true
     } catch (e) {
-      setErroAcao(e instanceof ApiError ? e.message : 'Não foi possível concluir a ação. Tente novamente.')
+      setErroAcao(mensagemDe(e, 'Não foi possível concluir a ação. Tente novamente.'))
       return false
     }
   }

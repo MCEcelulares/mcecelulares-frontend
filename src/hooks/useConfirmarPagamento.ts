@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ApiError, statusDe } from '../lib/api'
+import { mensagemDe, statusDe } from '../lib/api'
 import { sincronizarPagamento, type Pagamento, type StatusPagamento } from '../lib/pagamentos'
 
 /** O que sabemos do pagamento depois de perguntar ao back-end (nunca o que a URL de retorno diz). */
@@ -29,7 +29,7 @@ function consultar(idPedido: string): Promise<ResultadoConfirmacao> {
         ? { situacao: 'sem_pagamento' }
         : {
             situacao: 'erro',
-            mensagem: e instanceof ApiError ? e.message : 'Não foi possível confirmar o pagamento. Tente novamente.',
+            mensagem: mensagemDe(e, 'Não foi possível confirmar o pagamento. Tente novamente.'),
             status: statusDe(e),
           },
   )

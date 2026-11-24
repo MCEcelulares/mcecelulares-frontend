@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { atualizarStatusPedido, PODE_CANCELAR, PROXIMO_STATUS } from '../../lib/admin'
-import { ApiError } from '../../lib/api'
+import { mensagemDe } from '../../lib/api'
 import { PERMISSAO, temPermissao } from '../../lib/permissoes'
 import type { StatusPedido } from '../../lib/pedidos'
 import { BotaoConfirmar } from './BotaoConfirmar'
@@ -26,7 +26,7 @@ export function AcoesDoPedido({ idPedido, status, aoMudar }: Props) {
       await atualizarStatusPedido(idPedido, novo)
       await aoMudar()
     } catch (e) {
-      setErro(e instanceof ApiError ? e.message : 'Não foi possível alterar o pedido. Tente novamente.')
+      setErro(mensagemDe(e, 'Não foi possível alterar o pedido. Tente novamente.'))
     }
   }
 

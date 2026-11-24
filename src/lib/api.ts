@@ -15,6 +15,9 @@ export class ApiError extends Error {
 /** Código HTTP de um erro da API; 0 se a requisição nem chegou ao servidor ou se o erro não for da API. */
 export const statusDe = (e: unknown) => (e instanceof ApiError ? e.status : 0)
 
+/** Mensagem do erro da API; para qualquer outra falha (rede, bug), o texto padrão da tela. */
+export const mensagemDe = (e: unknown, padrao: string) => (e instanceof ApiError ? e.message : padrao)
+
 export interface ApiInit extends Omit<RequestInit, 'body'> {
   /** Corpo JSON (serializado automaticamente). */
   json?: unknown

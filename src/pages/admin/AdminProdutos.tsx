@@ -11,7 +11,7 @@ import { Miniatura } from '../../components/ui/Miniatura'
 import { Paginacao } from '../../components/ui/Paginacao'
 import { useConsulta } from '../../hooks/useConsulta'
 import { atualizarProduto, listarCategoriasAdmin, listarMarcasAdmin, listarProdutosAdmin } from '../../lib/admin'
-import { ApiError } from '../../lib/api'
+import { mensagemDe } from '../../lib/api'
 import type { Produto } from '../../lib/catalogo'
 import { formatarPreco } from '../../lib/formatar'
 
@@ -59,7 +59,7 @@ export default function AdminProdutos() {
       await atualizarProduto(p.id_produto, { ativo: !p.ativo })
       await recarregar()
     } catch (e) {
-      setErroAcao(e instanceof ApiError ? e.message : 'Não foi possível alterar o produto. Tente novamente.')
+      setErroAcao(mensagemDe(e, 'Não foi possível alterar o produto. Tente novamente.'))
     }
   }
 
