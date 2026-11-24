@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import { ReceiptText } from 'lucide-react'
 import { CartaoPedido, CartaoPedidoSkeleton } from '../components/pedido/CartaoPedido'
+import { Aviso } from '../components/ui/Aviso'
 import { classeBotao } from '../components/ui/botao'
 import { EstadoVazio } from '../components/ui/EstadoVazio'
 import { Paginacao } from '../components/ui/Paginacao'
@@ -58,9 +59,7 @@ export default function Pedidos() {
 
       <div className="mt-8 space-y-5">
         {erro ? (
-          <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center text-sm text-red-700">
-            Não foi possível carregar seus pedidos. {erro.message}
-          </div>
+          <Aviso tom="erro">Não foi possível carregar seus pedidos. {erro.message}</Aviso>
         ) : carregando ? (
           Array.from({ length: 3 }, (_, i) => <CartaoPedidoSkeleton key={i} />)
         ) : dados && dados.dados.length > 0 ? (

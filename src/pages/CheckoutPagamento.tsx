@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { CheckCircle2, Clock, MapPin, PackageSearch, ShieldCheck } from 'lucide-react'
-import { AlertaErro } from '../components/auth/AuthShell'
 import { ResumoItens } from '../components/checkout/ResumoItens'
+import { Aviso, type TomAviso } from '../components/ui/Aviso'
 import { classeBotao } from '../components/ui/botao'
 import { Carregando } from '../components/ui/Carregando'
 import { EstadoVazio } from '../components/ui/EstadoVazio'
@@ -23,7 +23,7 @@ export default function CheckoutPagamento() {
   const { id = '' } = useParams()
   const [carga, setCarga] = useState<Carga | null>(null)
   const [pagando, setPagando] = useState(false)
-  const [erro, setErro] = useState<string | null>(null)
+  const [mensagem, setMensagem] = useState<{ tom: TomAviso; texto: string } | null>(null)
   const [aprovado, setAprovado] = useState(false)
 
   useEffect(() => {
@@ -85,7 +85,7 @@ export default function CheckoutPagamento() {
   }
 
   const pagar = async () => {
-    setErro(null)
+    setMensagem(null)
     setPagando(true)
     try {
       const pagamento = await iniciarPagamento(pedido.id_pedido, pedido.valor_total)
@@ -94,10 +94,10 @@ export default function CheckoutPagamento() {
         return
       }
       if (pagamento.status === 'APROVADO') setAprovado(true)
-      else if (pagamento.status === 'RECUSADO') setErro('O pagamento foi recusado. Você pode tentar novamente.')
-      else setErro('Seu pagamento está em processamento. Aguarde a confirmação.')
+      else if (pagamento.status === 'RECUSADO') setMensagem({ tom: 'atencao', texto: 'O pagamento foi recusado. Você pode tentar novamente.' })
+      else setMensagem({ tom: 'info', texto: 'Seu pagamento está em processamento. Aguarde a confirmação.' })
     } catch (e) {
-      setErro(e instanceof ApiError ? e.message : 'Não foi possível processar o pagamento. Tente novamente.')
+      setMensagem({ tom: 'erro', texto: e instanceof ApiError ? e.message : 'Não foi possível processar o pagamento. Tente novamente.' })
     } finally {
       setPagando(false)
     }
@@ -119,9 +119,9 @@ export default function CheckoutPagamento() {
           <h1 className="titulo-pagina">Pagamento</h1>
 
           {pedido.expira_em && (
-            <p className="flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              <Clock size={16} /> Pedido <strong>#{pedido.id_pedido}</strong> reservado. Pague até <strong>{dataHora(pedido.expira_em)}</strong> para garantir seus itens.
-            </p>
+            <Aviso tom="atencao" icone={Clock}>
+              Pedido <strong>#{pedido.id_pedido}</strong> reservado. Pague até <strong>{dataHora(pedido.expira_em)}</strong> para garantir seus itens.
+            </Aviso>
           )}
 
           {e && (
@@ -145,7 +145,7 @@ export default function CheckoutPagamento() {
           total={pedido.valor_total}
           acao={
             <div className="space-y-3">
-              {erro && <AlertaErro mensagem={erro} />}
+              {mensagem && <Aviso tom={mensagem.tom}>{mensagem.texto}</Aviso>}
               <button
                 onClick={pagar}
                 disabled={pagando}
