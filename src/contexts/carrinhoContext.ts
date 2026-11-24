@@ -5,6 +5,8 @@ export interface CarrinhoContextValue {
   /** Carrinho do usuário logado; `null` se deslogado ou ainda carregando. */
   carrinho: Carrinho | null
   carregando: boolean
+  /** O carrinho não pôde ser carregado (ex.: serviço de Vendas indisponível). */
+  erro: boolean
   /** Soma das quantidades de todos os itens (para o contador do header). */
   quantidadeTotal: number
   adicionar: (idProduto: number, quantidade: number) => Promise<void>

@@ -68,7 +68,7 @@ export default function Checkout() {
   if (!carrinho || carrinho.itens.length === 0) return <Navigate to="/carrinho" replace />
 
   const lista = enderecos ?? []
-  const mostrarForm = cadastrando || lista.length === 0
+  const mostrarForm = !erroEnderecos && (cadastrando || lista.length === 0)
 
   const aoSalvar = (novo: Endereco) => {
     setEnderecos((atual) => [...(atual ?? []), novo])
@@ -141,7 +141,7 @@ export default function Checkout() {
               >
                 {criando ? 'Criando pedido...' : 'Ir para Pagamento'}
               </button>
-              {escolhido === null && <p className="text-center text-xs text-slate-500">Cadastre ou selecione um endereço para continuar.</p>}
+              {escolhido === null && !erroEnderecos && <p className="text-center text-xs text-slate-500">Cadastre ou selecione um endereço para continuar.</p>}
             </div>
           }
         />

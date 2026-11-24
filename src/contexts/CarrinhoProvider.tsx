@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/useAuth'
 import * as vendas from '../lib/vendas'
 import { CarrinhoContext, type CarrinhoContextValue } from './carrinhoContext'
 
-type Estado = { idUsuario: number; carrinho: vendas.Carrinho | null }
+type Estado = { idUsuario: number; carrinho: vendas.Carrinho | null; erro?: boolean }
 
 export function CarrinhoProvider({ children }: { children: ReactNode }) {
   const { usuario } = useAuth()
@@ -16,7 +16,7 @@ export function CarrinhoProvider({ children }: { children: ReactNode }) {
     vendas
       .buscarCarrinho()
       .then((carrinho) => ativo && setEstado({ idUsuario, carrinho }))
-      .catch(() => ativo && setEstado({ idUsuario, carrinho: null }))
+      .catch(() => ativo && setEstado({ idUsuario, carrinho: null, erro: true }))
     return () => {
       ativo = false
     }
@@ -25,6 +25,7 @@ export function CarrinhoProvider({ children }: { children: ReactNode }) {
   // Estado derivado: o carrinho guardado só vale para o usuário atual (some sozinho ao sair).
   const atual = estado && estado.idUsuario === idUsuario ? estado : null
   const carrinho = atual?.carrinho ?? null
+  const erro = atual?.erro === true
   const carregando = idUsuario !== null && atual === null
 
   const aplicar = useCallback(
@@ -58,13 +59,14 @@ export function CarrinhoProvider({ children }: { children: ReactNode }) {
     () => ({
       carrinho,
       carregando,
+      erro,
       quantidadeTotal: carrinho?.itens.reduce((soma, i) => soma + i.quantidade, 0) ?? 0,
       adicionar,
       atualizar,
       remover,
       recarregar,
     }),
-    [carrinho, carregando, adicionar, atualizar, remover, recarregar],
+    [carrinho, carregando, erro, adicionar, atualizar, remover, recarregar],
   )
 
   return <CarrinhoContext.Provider value={valor}>{children}</CarrinhoContext.Provider>
