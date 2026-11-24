@@ -75,3 +75,13 @@ export const criarPedido = (idEndereco: number) =>
 
 export const buscarPedido = (id: string) =>
   apiAutenticada<Pedido>(`/vendas/pedidos/${encodeURIComponent(id)}`).then(normalizar)
+
+/** Filtros de status das listas de pedidos (do cliente e do painel). `valor: null` é "todos". */
+export const FILTROS_STATUS: { valor: StatusPedido | null; rotulo: string }[] = [
+  { valor: null, rotulo: 'Todos' },
+  { valor: 'AGUARDANDO_PAGAMENTO', rotulo: 'Aguardando pagamento' },
+  { valor: 'PAGO', rotulo: 'Pago' },
+  { valor: 'ENVIADO', rotulo: 'Enviado' },
+  { valor: 'ENTREGUE', rotulo: 'Entregue' },
+  { valor: 'CANCELADO', rotulo: 'Cancelado' },
+]
