@@ -5,6 +5,7 @@ import type { LucideIcon } from 'lucide-react'
 import { classeBotao } from '../components/ui/botao'
 import { Aviso } from '../components/ui/Aviso'
 import { EstadoVazio } from '../components/ui/EstadoVazio'
+import { useAcompanharPedido } from '../hooks/useAcompanharPedido'
 import { useConfirmarPagamento } from '../hooks/useConfirmarPagamento'
 import { lerRetornoMercadoPago } from '../lib/retornoMercadoPago'
 
@@ -46,7 +47,11 @@ export default function CheckoutRetorno() {
 
   // Pagamento aprovado leva ao pedido. `replace` tira esta tela (e a URL com os parâmetros do Mercado Pago) do histórico:
   // voltar ou atualizar a página não repete a confirmação. Sair antes cancela o temporizador.
-  const aprovado = resultado.situacao === 'aprovado'
+  // Pendente: o back-end ainda espera o Mercado Pago. Acompanhamos o pedido, que o webhook atualiza, até ele ser pago.
+  const pendente = resultado.situacao === 'pendente'
+  const { status: statusPedido, esgotado } = useAcompanharPedido(id, pendente)
+  const pagoNoAcompanhamento = pendente && (statusPedido === 'PAGO' || statusPedido === 'ENVIADO' || statusPedido === 'ENTREGUE')
+  const aprovado = resultado.situacao === 'aprovado' || pagoNoAcompanhamento
   useEffect(() => {
     if (!aprovado) return
     const temporizador = setTimeout(() => navigate(`/pedidos/${id}`, { replace: true }), ATRASO_PARA_O_PEDIDO_MS)
@@ -56,6 +61,35 @@ export default function CheckoutRetorno() {
   const verPedido = <Link to={`/pedidos/${id}`} className={classeBotao()}>Ver meu pedido</Link>
   const verPedidoSecundario = <Link to={`/pedidos/${id}`} className={classeBotao('contorno')}>Ver meu pedido</Link>
   const continuar = <Link to="/produtos" className={classeBotao('contorno')}>Continuar comprando</Link>
+
+  const telaAprovado = (
+    <Resultado
+      icone={CheckCircle2}
+      classeIcone="text-success"
+      titulo="Pagamento aprovado!"
+      descricao={<>Seu pedido <strong>#{id}</strong> foi confirmado. Você será levado ao pedido em instantes.</>}
+    >
+      {verPedido}
+      {continuar}
+    </Resultado>
+  )
+
+  if (pagoNoAcompanhamento) return telaAprovado
+
+  if (pendente && statusPedido === 'CANCELADO') {
+    return (
+      <Resultado
+        icone={XCircle}
+        classeIcone="text-red-500"
+        titulo="Pedido cancelado"
+        descricao="O prazo para pagar terminou e o pedido foi cancelado."
+        aviso={<Aviso tom="atencao">Se você chegou a pagar, fale com a loja para combinar o reembolso.</Aviso>}
+      >
+        <Link to="/contato" className={classeBotao()}>Falar com a loja</Link>
+        <Link to="/pedidos" className={classeBotao('contorno')}>Meus pedidos</Link>
+      </Resultado>
+    )
+  }
 
   switch (resultado.situacao) {
     case 'confirmando':
@@ -68,17 +102,7 @@ export default function CheckoutRetorno() {
       )
 
     case 'aprovado':
-      return (
-        <Resultado
-          icone={CheckCircle2}
-          classeIcone="text-success"
-          titulo="Pagamento aprovado!"
-          descricao={<>Seu pedido <strong>#{id}</strong> foi confirmado. Você será levado ao pedido em instantes.</>}
-        >
-          {verPedido}
-          {continuar}
-        </Resultado>
-      )
+      return telaAprovado
 
     case 'pendente':
       return (
@@ -91,9 +115,20 @@ export default function CheckoutRetorno() {
               ? 'O Mercado Pago indicou a aprovação e estamos aguardando a confirmação final. Isso costuma levar poucos instantes.'
               : 'Assim que o Mercado Pago confirmar o pagamento, seu pedido será atualizado. Pix e boleto podem levar mais tempo.'
           }
-          aviso={<Aviso tom="info">Não é preciso pagar de novo. Se já pagou, aguarde: o pedido é atualizado sozinho quando o pagamento for confirmado.</Aviso>}
+          aviso={
+            esgotado ? (
+              <Aviso tom="atencao">
+                Ainda não recebemos a confirmação. Não é preciso pagar de novo: você pode verificar agora ou voltar mais tarde em Meus pedidos, que mostram o pagamento assim que ele for confirmado.
+              </Aviso>
+            ) : (
+              <Aviso tom="info">
+                Não é preciso pagar de novo. Esta página confere o pedido sozinha a cada poucos segundos e avisa quando o pagamento for confirmado.
+              </Aviso>
+            )
+          }
         >
-          {verPedido}
+          <button type="button" onClick={verificarNovamente} className={classeBotao()}>Verificar agora</button>
+          {verPedidoSecundario}
           {continuar}
         </Resultado>
       )
