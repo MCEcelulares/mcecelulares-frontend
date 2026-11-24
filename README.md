@@ -34,7 +34,7 @@ O `.env` não vai para o git. Em produção, defina a variável no build da hosp
 | Pasta | Conteúdo |
 |---|---|
 | `pages/` | Uma tela por rota (`conta/` agrupa as telas da área do cliente) |
-| `components/` | Peças de interface, agrupadas por assunto (`layout`, `ui` — botões, campos, miniatura, estados vazios —, `produto`, `pedido`, `checkout`, `auth`, `home`) |
+| `components/` | Peças de interface, agrupadas por assunto (`layout`, `ui` — botões, campos, avisos, miniatura, estados vazios —, `produto`, `pedido`, `checkout`, `auth`, `home`, `admin`) |
 | `hooks/` | `useConsulta` (busca de dados), `useFormulario` (formulários), `useAuth`, `useCarrinho`, `useCategorias`, `useProdutosPorId`… |
 | `contexts/` | Sessão (`AuthProvider`) e carrinho (`CarrinhoProvider`) |
 | `lib/` | Cliente HTTP (`api.ts`), sessão (`auth.ts`), um módulo por serviço, formatação, máscaras e validação |
@@ -57,11 +57,58 @@ Públicas: `/`, `/produtos`, `/produtos/:id`, `/login`, `/cadastro`, `/contato`.
 Exigem login: `/carrinho`, `/pedidos`, `/pedidos/:id`, `/conta`, `/conta/enderecos`, `/conta/seguranca`,
 `/checkout`, `/checkout/pagamento/:id`, `/checkout/retorno/:id` (para onde o Mercado Pago devolve o cliente; ver
 [Pagamento com Mercado Pago](#pagamento-com-mercado-pago)).
+Painel administrativo (exige a permissão `painel:acessar`): `/admin` e as telas listadas em
+[Painel administrativo](#painel-administrativo).
 
 ## Sessão
 
 O token de acesso fica só em memória. O refresh token (de uso único) fica no `localStorage` com "Manter conectado"
 ou no `sessionStorage` sem ele. `apiAutenticada` renova o token sozinho antes de expirar.
+
+## Painel administrativo
+
+Área restrita em `/admin`, com menu lateral. Quem não tem a permissão `painel:acessar` vê "Acesso negado"; quem tem vê só as
+seções para as quais o seu cargo dá permissão. O link aparece em **Minha Conta → Painel administrativo** apenas para quem pode.
+A tela só esconde o que a pessoa não pode usar: **quem decide é o back-end**, que confere a permissão em cada chamada.
+
+| Tela | Rota | Permissão | O que faz |
+|---|---|---|---|
+| Painel de vendas | `/admin/vendas` | `dashboard:ver` | Receita, pedidos por status e por dia (7, 30 ou 90 dias) e os 10 produtos mais vendidos |
+| Produtos | `/admin/produtos`, `/novo`, `/:id` | `catalogo:gerenciar` | Lista com busca, categoria, marca e inativos; cadastro e edição; inativar no lugar de excluir |
+| Estoque e imagem | (na edição do produto) | `catalogo:gerenciar` | Ajuste de estoque (soma ou subtrai) e envio/remoção de imagem JPEG, PNG ou WEBP de até 2 MB |
+| Categorias e marcas | `/admin/categorias`, `/admin/marcas` | `catalogo:gerenciar` | Criar, renomear, inativar e excluir; o erro da API aparece quando o item está em uso |
+| Usuários | `/admin/usuarios`, `/:id` | `usuarios:listar` (+ `usuarios:editar`, `usuarios:gerenciar-cargos`) | Lista com busca, cargo, situação e paginação; edição de dados, ativar/inativar e cargos |
+| Pedidos | `/admin/pedidos`, `/:id` | `pedidos:listar-todos` (+ `pedidos:atualizar-status`, `pedidos:cancelar`) | Todos os pedidos com filtro por status; enviado, entregue e cancelamento com confirmação |
+
+### Decisões e limites (leia antes de apresentar)
+
+- **O estoque só muda por ajuste.** O `PATCH /produtos/{id}` do Catálogo ignora o campo `estoque`, então na edição o campo é só leitura
+  e o ajuste (soma ou subtração, nunca abaixo de zero) fica em um cartão próprio.
+- **Pedidos: só o fluxo normal.** O painel oferece *pago → enviado → entregue* e *cancelar* (aguardando ou pago; ao cancelar, o estoque
+  volta ao Catálogo). **Não** oferece "marcar como pago": quem confirma o pagamento é o Mercado Pago (ADR-011) e marcar à mão contornaria
+  essa conferência, embora a API permita. Se a loja quiser esse atalho, é uma decisão de negócio.
+- **Excluir categoria ou marca em uso** é recusado pelo back-end (409) e a mensagem aparece na tela; o caminho é inativar.
+- **Cargos valem no próximo login** da pessoa. O back-end impede inativar a si mesmo e tirar o cargo do último administrador.
+- **Confirmação sem janela:** ações que não se desfazem sozinhas (inativar, excluir, cancelar, enviar) viram "Tem certeza? Sim / Não"
+  no próprio lugar do botão.
+
+### Peças
+
+| Arquivo | Papel |
+|---|---|
+| `lib/permissoes.ts` | Nomes das permissões do back-end e `temPermissao(usuario, permissao)` |
+| `lib/admin.ts` | Todas as chamadas do painel (catálogo, usuários, pedidos e resumo de vendas) |
+| `components/admin/ExigePermissao.tsx` | Barra a rota (e as filhas) de quem não tem a permissão |
+| `components/admin/BotaoConfirmar.tsx`, `AcoesDoPedido.tsx`, `EstoqueEImagem.tsx` | Confirmação em duas etapas; botões de status do pedido; ajuste de estoque e imagem |
+| `pages/admin/` | `AdminLayout` (menu), `AdminInicio`, uma página por tela e `secoes.ts` (a lista que alimenta o menu e a página inicial) |
+
+Para **acrescentar uma tela**: crie a página em `pages/admin/`, registre a rota em `App.tsx` dentro de um `ExigePermissao` e acrescente uma
+linha em `secoes.ts`; menu e página inicial a mostram sozinhos para quem tiver a permissão.
+
+### Para testar
+
+Entre com o administrador criado pelo seed do Identidade (`ADMIN_EMAIL` e `ADMIN_SENHA` do `identidade-service/.env`) e abra
+**Minha Conta → Painel administrativo**. Uma conta de cliente comum, ao abrir `/admin`, deve ver "Acesso negado".
 
 ## Pagamento com Mercado Pago
 
