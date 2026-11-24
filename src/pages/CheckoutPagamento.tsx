@@ -196,6 +196,10 @@ export default function CheckoutPagamento() {
               >
                 {redirecionando ? 'Redirecionando para o Mercado Pago...' : pagando ? 'Processando...' : `Pagar agora ${formatarPreco(pedido.valor_total)}`}
               </button>
+              <p className="text-center text-xs text-slate-500">
+                Já pagou e fechou a janela do Mercado Pago?{' '}
+                <Link to={`/checkout/retorno/${pedido.id_pedido}`} className="font-semibold text-brand-600 hover:underline">Conferir pagamento</Link>
+              </p>
             </div>
           }
         />
