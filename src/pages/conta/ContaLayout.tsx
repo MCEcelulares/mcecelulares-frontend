@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LogOut, MapPin, Package, ShieldCheck, User, type LucideIcon } from 'lucide-react'
+import { LayoutDashboard, LogOut, MapPin, Package, ShieldCheck, User, type LucideIcon } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { PERMISSAO, temPermissao } from '../../lib/permissoes'
 
 const ITENS: { to: string; rotulo: string; icone: LucideIcon; end?: boolean }[] = [
   { to: '/conta', rotulo: 'Minha Conta', icone: User, end: true },
@@ -8,6 +9,8 @@ const ITENS: { to: string; rotulo: string; icone: LucideIcon; end?: boolean }[] 
   { to: '/conta/enderecos', rotulo: 'Endereços Cadastrados', icone: MapPin },
   { to: '/conta/seguranca', rotulo: 'Segurança e Senha', icone: ShieldCheck },
 ]
+
+const ITEM_PAINEL = { to: '/admin', rotulo: 'Painel administrativo', icone: LayoutDashboard, end: false }
 
 const iniciais = (nome: string) => {
   const partes = nome.trim().split(/\s+/)
@@ -37,7 +40,7 @@ export default function ContaLayout() {
         </div>
 
         <nav aria-label="Menu da conta" className="mt-4 flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">
-          {ITENS.map(({ to, rotulo, icone: Icone, end }) => (
+          {[...ITENS, ...(temPermissao(usuario, PERMISSAO.painel) ? [ITEM_PAINEL] : [])].map(({ to, rotulo, icone: Icone, end }) => (
             <NavLink
               key={to}
               to={to}
