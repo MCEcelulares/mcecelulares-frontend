@@ -35,7 +35,7 @@ function Etapas({ atual }: { atual: number }) {
 
 export function CheckoutLayout() {
   const { pathname } = useLocation()
-  const etapa = pathname.startsWith('/checkout/pagamento') ? 3 : 2
+  const etapa = pathname.startsWith('/checkout/pagamento') || pathname.startsWith('/checkout/retorno') ? 3 : 2
 
   return (
     <div className="flex min-h-screen flex-col">
