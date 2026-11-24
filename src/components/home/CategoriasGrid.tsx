@@ -26,6 +26,7 @@ const ICONES: Record<string, LucideIcon> = {
   monitores: Monitor,
   perifericos: Mouse,
   audio: Headphones,
+  fones: Headphones,
   computadores: MonitorSmartphone,
 }
 
