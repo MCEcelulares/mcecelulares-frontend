@@ -57,6 +57,10 @@ export const listarCategorias = () =>
     categorias = null
     throw e
   }))
+/** O painel mexe nas categorias: esquece a lista guardada para a loja buscar de novo. */
+export const esquecerCategorias = () => {
+  categorias = null
+}
 export const listarMarcas = () => api<Marca[]>('/catalogo/marcas')
 export const listarDestaques = () => api<Produto[]>('/catalogo/produtos/destaque?limite=8')
 export const listarRecentes = () => api<Produto[]>('/catalogo/produtos/recentes?limite=8')
