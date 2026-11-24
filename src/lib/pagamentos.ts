@@ -21,3 +21,12 @@ export const iniciarPagamento = (idPedido: number, valor: number, metodoPagament
  */
 export const sincronizarPagamento = (idPedido: number | string) =>
   apiAutenticada<Pagamento>(`/pagamento/pagamentos/${idPedido}/sincronizar`, { method: 'POST' })
+
+/** O link do Checkout Pro só vale se for `https`: nunca navegamos para `http:`, `javascript:` ou algo que não seja uma URL. */
+export const urlDePagamentoSegura = (url: string) => {
+  try {
+    return new URL(url).protocol === 'https:'
+  } catch {
+    return false
+  }
+}

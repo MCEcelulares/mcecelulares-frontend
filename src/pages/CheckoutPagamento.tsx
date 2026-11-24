@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { CheckCircle2, Clock, MapPin, PackageSearch, ShieldCheck } from 'lucide-react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { AlertTriangle, CheckCircle2, Clock, MapPin, PackageSearch, ShieldCheck } from 'lucide-react'
 import { ResumoItens } from '../components/checkout/ResumoItens'
 import { Aviso, type TomAviso } from '../components/ui/Aviso'
 import { classeBotao } from '../components/ui/botao'
 import { Carregando } from '../components/ui/Carregando'
 import { EstadoVazio } from '../components/ui/EstadoVazio'
 import { useProdutosPorId } from '../hooks/useProdutosPorId'
-import { ApiError } from '../lib/api'
+import { ApiError, statusDe } from '../lib/api'
 import { formatarCep, linhaCidade, linhaRua } from '../lib/enderecos'
 import { dataHora, formatarPreco } from '../lib/formatar'
-import { iniciarPagamento } from '../lib/pagamentos'
+import { iniciarPagamento, urlDePagamentoSegura } from '../lib/pagamentos'
 import { buscarPedido, type Pedido } from '../lib/pedidos'
 
+/** `erro`: falhou por outro motivo que não "não existe / não é seu" (rede, servidor), então vale tentar de novo. */
 type Carga = { id: string; pedido: Pedido | null; erro: boolean }
 
 function Centralizado({ children }: { children: React.ReactNode }) {
@@ -21,20 +22,39 @@ function Centralizado({ children }: { children: React.ReactNode }) {
 
 export default function CheckoutPagamento() {
   const { id = '' } = useParams()
+  const navigate = useNavigate()
   const [carga, setCarga] = useState<Carga | null>(null)
   const [pagando, setPagando] = useState(false)
   const [mensagem, setMensagem] = useState<{ tom: TomAviso; texto: string } | null>(null)
   const [aprovado, setAprovado] = useState(false)
+  const [tentativa, setTentativa] = useState(0)
+  const [redirecionando, setRedirecionando] = useState(false)
 
   useEffect(() => {
     let ativo = true
     buscarPedido(id)
       .then((pedido) => ativo && setCarga({ id, pedido, erro: false }))
-      .catch(() => ativo && setCarga({ id, pedido: null, erro: true }))
+      .catch((e: unknown) => ativo && setCarga({ id, pedido: null, erro: ![403, 404].includes(statusDe(e)) }))
     return () => {
       ativo = false
     }
-  }, [id])
+  }, [id, tentativa])
+
+  // Voltar do Mercado Pago pelo botão do navegador pode restaurar esta página como estava (cache de ida e volta).
+  useEffect(() => {
+    const aoMostrar = (e: PageTransitionEvent) => {
+      if (!e.persisted) return
+      setRedirecionando(false)
+      setPagando(false)
+    }
+    window.addEventListener('pageshow', aoMostrar)
+    return () => window.removeEventListener('pageshow', aoMostrar)
+  }, [])
+
+  const carregarDeNovo = () => {
+    setCarga(null)
+    setTentativa((t) => t + 1)
+  }
 
   const atual = carga?.id === id ? carga : null
   const idsProdutos = atual?.pedido?.itens.flatMap((i) => (i.id_produto === null ? [] : [i.id_produto])) ?? []
@@ -45,6 +65,22 @@ export default function CheckoutPagamento() {
   }
 
   const pedido = atual.pedido
+  if (!pedido && atual.erro) {
+    return (
+      <EstadoVazio
+        moldura={false}
+        nivel={1}
+        role="alert"
+        icone={AlertTriangle}
+        titulo="Não foi possível carregar o pedido"
+        descricao="Verifique sua conexão e tente de novo. Seu pedido não foi alterado."
+      >
+        <button type="button" onClick={carregarDeNovo} className={classeBotao()}>Tentar novamente</button>
+        <Link to="/pedidos" className={classeBotao('contorno')}>Meus pedidos</Link>
+      </EstadoVazio>
+    )
+  }
+
   if (!pedido) {
     return (
       <EstadoVazio moldura={false} nivel={1} icone={PackageSearch} titulo="Pedido não encontrado" descricao="Ele não existe ou não pertence à sua conta.">
@@ -87,19 +123,41 @@ export default function CheckoutPagamento() {
   const pagar = async () => {
     setMensagem(null)
     setPagando(true)
+    // A aba é aberta já no clique: depois de um await o navegador a trataria como pop-up e a bloquearia. Ela espera em
+    // branco pelo link do Mercado Pago. Sem `opener`, a página do Mercado Pago não alcança esta loja.
+    const aba = window.open('about:blank', '_blank')
+    if (aba) aba.opener = null
+    let redirecionou = false
     try {
       const pagamento = await iniciarPagamento(pedido.id_pedido, pedido.valor_total)
       if (pagamento.url_pagamento) {
+        if (!urlDePagamentoSegura(pagamento.url_pagamento)) {
+          aba?.close()
+          setMensagem({ tom: 'erro', texto: 'Não foi possível abrir o Mercado Pago. Tente novamente em instantes.' })
+          return
+        }
+        // O botão continua bloqueado até esta página sair: um segundo clique criaria outro pagamento.
+        redirecionou = true
+        if (aba) {
+          // O pagamento segue na aba nova; esta aba mostra o pedido, onde o cliente confere o resultado ("Já paguei").
+          aba.location.href = pagamento.url_pagamento
+          navigate(`/pedidos/${pedido.id_pedido}`)
+          return
+        }
+        // Pop-up bloqueado: segue na mesma aba.
+        setRedirecionando(true)
         window.location.assign(pagamento.url_pagamento)
         return
       }
+      aba?.close() // gateway simulado: não há link, o resultado vem na resposta
       if (pagamento.status === 'APROVADO') setAprovado(true)
       else if (pagamento.status === 'RECUSADO') setMensagem({ tom: 'atencao', texto: 'O pagamento foi recusado. Você pode tentar novamente.' })
       else setMensagem({ tom: 'info', texto: 'Seu pagamento está em processamento. Aguarde a confirmação.' })
     } catch (e) {
+      aba?.close()
       setMensagem({ tom: 'erro', texto: e instanceof ApiError ? e.message : 'Não foi possível processar o pagamento. Tente novamente.' })
     } finally {
-      setPagando(false)
+      if (!redirecionou) setPagando(false)
     }
   }
 
@@ -134,7 +192,7 @@ export default function CheckoutPagamento() {
 
           <section className="cartao p-6">
             <h2 className="flex items-center gap-2 titulo-card"><ShieldCheck size={18} className="text-success" /> Forma de pagamento</h2>
-            <p className="mt-3 text-sm text-slate-600">Ao clicar em <strong>Pagar agora</strong>, seu pagamento é processado com segurança.</p>
+            <p className="mt-3 text-sm text-slate-600">Ao clicar em <strong>Pagar agora</strong>, seu pagamento é processado com segurança. O Mercado Pago abre em uma nova aba, e esta aba passa a mostrar seu pedido.</p>
           </section>
         </div>
 
@@ -151,8 +209,12 @@ export default function CheckoutPagamento() {
                 disabled={pagando}
                 className="w-full rounded-xl bg-success py-3.5 font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {pagando ? 'Processando...' : `Pagar agora ${formatarPreco(pedido.valor_total)}`}
+                {redirecionando ? 'Redirecionando para o Mercado Pago...' : pagando ? 'Processando...' : `Pagar agora ${formatarPreco(pedido.valor_total)}`}
               </button>
+              <p className="text-center text-xs text-slate-500">
+                Já pagou e fechou a janela do Mercado Pago?{' '}
+                <Link to={`/checkout/retorno/${pedido.id_pedido}`} className="font-semibold text-brand-600 hover:underline">Conferir pagamento</Link>
+              </p>
             </div>
           }
         />

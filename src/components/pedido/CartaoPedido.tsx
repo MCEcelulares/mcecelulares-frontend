@@ -63,9 +63,14 @@ export function CartaoPedido({ resumo }: { resumo: PedidoResumo }) {
 
         <div className="flex flex-wrap gap-3">
           {aguardando && (
-            <Link to={`/checkout/pagamento/${resumo.id_pedido}`} className={classeBotao('primario', 'sm')}>
-              Pagar Agora
-            </Link>
+            <>
+              <Link to={`/checkout/pagamento/${resumo.id_pedido}`} className={classeBotao('primario', 'sm')}>
+                Pagar Agora
+              </Link>
+              <Link to={`/checkout/retorno/${resumo.id_pedido}`} className={classeBotao('contorno', 'sm')}>
+                Já paguei
+              </Link>
+            </>
           )}
           {!aguardando && detalhe && detalhe.itens.length > 0 && (
             <button
