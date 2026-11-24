@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AlertTriangle, CheckCircle2, Clock, Loader2, PackageSearch, XCircle } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { classeBotao } from '../components/ui/botao'
+import { Aviso } from '../components/ui/Aviso'
 import { EstadoVazio } from '../components/ui/EstadoVazio'
 import { useConfirmarPagamento } from '../hooks/useConfirmarPagamento'
 import { lerRetornoMercadoPago } from '../lib/retornoMercadoPago'
@@ -15,15 +16,18 @@ interface ResultadoProps {
   classeIcone: string
   titulo: string
   descricao: ReactNode
+  /** Aviso extra, entre o texto e os botões. */
+  aviso?: ReactNode
   children: ReactNode
 }
 
-function Resultado({ icone: Icone, classeIcone, titulo, descricao, children }: ResultadoProps) {
+function Resultado({ icone: Icone, classeIcone, titulo, descricao, aviso, children }: ResultadoProps) {
   return (
     <div role="status" className="mx-auto flex max-w-xl flex-col items-center px-6 py-20 text-center">
       <Icone size={60} className={classeIcone} />
       <h1 className="mt-5 font-display text-3xl font-extrabold">{titulo}</h1>
       <p className="mt-2 text-slate-600">{descricao}</p>
+      {aviso && <div className="mt-6 w-full text-left">{aviso}</div>}
       <div className="mt-8 flex flex-wrap justify-center gap-3">{children}</div>
     </div>
   )
@@ -87,6 +91,7 @@ export default function CheckoutRetorno() {
               ? 'O Mercado Pago indicou a aprovação e estamos aguardando a confirmação final. Isso costuma levar poucos instantes.'
               : 'Assim que o Mercado Pago confirmar o pagamento, seu pedido será atualizado. Pix e boleto podem levar mais tempo.'
           }
+          aviso={<Aviso tom="info">Não é preciso pagar de novo. Se já pagou, aguarde: o pedido é atualizado sozinho quando o pagamento for confirmado.</Aviso>}
         >
           {verPedido}
           {continuar}
@@ -99,7 +104,8 @@ export default function CheckoutRetorno() {
           icone={XCircle}
           classeIcone="text-red-500"
           titulo="Pagamento não aprovado"
-          descricao="O Mercado Pago não aprovou este pagamento. Seu pedido continua reservado até o prazo, e você pode tentar de novo."
+          descricao="O Mercado Pago não aprovou este pagamento."
+          aviso={<Aviso tom="atencao">Seu pedido continua reservado até o prazo. Tente de novo ou use outra forma de pagamento.</Aviso>}
         >
           <Link to={`/checkout/pagamento/${id}`} className={classeBotao()}>Tentar novamente</Link>
           {verPedidoSecundario}
@@ -112,7 +118,8 @@ export default function CheckoutRetorno() {
           icone={AlertTriangle}
           classeIcone="text-amber-500"
           titulo="Recebemos seu pagamento, mas não pudemos confirmar o pedido"
-          descricao="Isso acontece quando o pedido já foi cancelado ou expirou. Fale com a loja para combinar o reembolso."
+          descricao="Isso acontece quando o pedido já foi cancelado ou expirou."
+          aviso={<Aviso tom="erro" titulo="Não pague novamente">Fale com a loja para combinar o reembolso.</Aviso>}
         >
           <Link to="/contato" className={classeBotao()}>Falar com a loja</Link>
           <Link to="/pedidos" className={classeBotao('contorno')}>Meus pedidos</Link>
