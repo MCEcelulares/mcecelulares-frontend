@@ -55,12 +55,72 @@ Dados fixos da empresa (telefone, endereço, horário, e-mail de suporte) ficam 
 
 Públicas: `/`, `/produtos`, `/produtos/:id`, `/login`, `/cadastro`, `/contato`.
 Exigem login: `/carrinho`, `/pedidos`, `/pedidos/:id`, `/conta`, `/conta/enderecos`, `/conta/seguranca`,
-`/checkout`, `/checkout/pagamento/:id`.
+`/checkout`, `/checkout/pagamento/:id`, `/checkout/retorno/:id` (para onde o Mercado Pago devolve o cliente; ver
+[Pagamento com Mercado Pago](#pagamento-com-mercado-pago)).
 
 ## Sessão
 
 O token de acesso fica só em memória. O refresh token (de uso único) fica no `localStorage` com "Manter conectado"
 ou no `sessionStorage` sem ele. `apiAutenticada` renova o token sozinho antes de expirar.
+
+## Pagamento com Mercado Pago
+
+O front nunca fala com o Mercado Pago nem guarda chave dele: quem cria o pagamento e confere o resultado é o
+`pagamento-service`. O contrato está no ADR-011 do repositório do back-end.
+
+### Fluxo
+
+1. **`/checkout/pagamento/:id`** — "Pagar agora" chama `POST /pagamento/pagamentos`. Com o gateway `mercadopago` a
+   resposta traz `url_pagamento` (Checkout Pro) e o navegador vai para lá; com o gateway `simulado` (só em
+   desenvolvimento) a resposta já traz o resultado e a tela o mostra.
+2. O cliente paga no Mercado Pago, que o devolve para `{FRONTEND_URL}/checkout/retorno/:id?status=...&payment_id=...`.
+3. **`/checkout/retorno/:id`** — pede ao back-end `POST /pagamento/pagamentos/:id/sincronizar`, que consulta o Mercado
+   Pago. **A URL de retorno não prova nada**: qualquer um pode digitar `?status=approved`. Ela só escolhe um texto
+   (`lib/retornoMercadoPago.ts`); o resultado vem sempre do back-end.
+
+### Telas da confirmação
+
+| Situação | O que o cliente vê | Ações |
+|---|---|---|
+| Confirmando | "Confirmando seu pagamento..." | — |
+| Aprovado | "Pagamento aprovado!"; em 3 s vai ao pedido (`replace`, sem deixar a URL do Mercado Pago no histórico) | Ver meu pedido, Continuar comprando |
+| Em processamento (Pix, boleto) | Aviso de que não precisa pagar de novo; a tela confere o pedido a cada 5 s por até 2 min e vira "aprovado" sozinha | Verificar agora, Ver meu pedido |
+| Recusado | "Pagamento não aprovado"; o pedido segue reservado até o prazo | Tentar novamente |
+| Pago, mas pedido não confirmado | Aviso de erro: não pagar de novo | Falar com a loja |
+| Sem pagamento iniciado | "Não encontramos um pagamento para este pedido" | Pagar agora |
+| Pedido cancelado durante a espera | "Pedido cancelado" | Falar com a loja |
+| Falha ao confirmar | Mensagem do back-end (ex.: limite de tentativas) | Tentar novamente |
+
+Quem já pagou e fechou a janela do Mercado Pago tem "Conferir pagamento" na tela de pagamento e "Já paguei" na lista e
+no detalhe do pedido, em vez de pagar duas vezes.
+
+### Peças
+
+| Arquivo | Papel |
+|---|---|
+| `lib/pagamentos.ts` | `iniciarPagamento`, `sincronizarPagamento`, `urlDePagamentoSegura` (só abre links `https`) |
+| `lib/retornoMercadoPago.ts` | Lê `status`/`payment_id` da URL só como dica de texto |
+| `hooks/useConfirmarPagamento.ts` | Uma única chamada a `sincronizar` por pedido, mesmo no modo estrito do React (que roda os efeitos duas vezes) |
+| `hooks/useAcompanharPedido.ts` | Acompanha só o pedido (`buscarPedido`); **nunca** `sincronizar`, que divide com "Pagar agora" o limite de 30 tentativas de pagamento por 15 min por IP |
+| `components/ui/Aviso.tsx` | Faixa de aviso (`info`, `sucesso`, `atencao`, `erro`) |
+| `pages/CheckoutPagamento.tsx`, `pages/CheckoutRetorno.tsx` | As duas telas do fluxo |
+
+### Cuidados já tratados
+
+- O botão "Pagar agora" fica travado enquanto a página redireciona: um segundo clique criaria outro pagamento.
+- Só se navega para `url_pagamento` se for `https`; qualquer outra coisa mostra erro e não sai da loja.
+- O retorno exige login. Com a sessão expirada, o cliente entra e volta para a mesma URL de retorno (o refresh token
+  fica no `localStorage`, ou no `sessionStorage` sem "Manter conectado"; o Checkout Pro abre na mesma aba, então
+  ambos sobrevivem à ida e volta).
+- Pedido de outro usuário ou inexistente devolve 403/404 e a tela diz "não encontramos"; falha de rede ou 5xx mostra
+  "Não foi possível carregar" com "Tentar novamente".
+
+### Para rodar com o Mercado Pago
+
+No `pagamento-service/.env` do back-end: `GATEWAY_PAGAMENTO=mercadopago`, `MERCADOPAGO_ACCESS_TOKEN` (de teste),
+`FRONTEND_URL` com a origem deste front (ex.: `http://localhost:4000`; vazio = o Mercado Pago não devolve o cliente
+à loja) e, para o webhook, `PUBLIC_BASE_URL` pública (o Mercado Pago não alcança `localhost`; use um túnel). Sem o
+webhook o fluxo continua funcionando: a tela de retorno confirma pelo `sincronizar`.
 
 ## Marca
 
