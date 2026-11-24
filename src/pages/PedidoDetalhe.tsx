@@ -70,7 +70,10 @@ function Conteudo({ pedido }: { pedido: Pedido }) {
             <Clock size={16} className="text-brand-600" />
             {pedido.expira_em ? <>Pague até <strong>{dataHora(pedido.expira_em)}</strong> para garantir seus itens.</> : 'Este pedido aguarda o pagamento.'}
           </p>
-          <Link to={`/checkout/pagamento/${pedido.id_pedido}`} className={classeBotao('primario', 'sm')}>Pagar Agora</Link>
+          <div className="flex flex-wrap gap-2">
+            <Link to={`/checkout/retorno/${pedido.id_pedido}`} className={classeBotao('contorno', 'sm')}>Já paguei</Link>
+            <Link to={`/checkout/pagamento/${pedido.id_pedido}`} className={classeBotao('primario', 'sm')}>Pagar Agora</Link>
+          </div>
         </div>
       )}
 

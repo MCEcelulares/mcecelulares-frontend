@@ -7,6 +7,7 @@ import Carrinho from './pages/Carrinho'
 import Checkout from './pages/Checkout'
 import Contato from './pages/Contato'
 import CheckoutPagamento from './pages/CheckoutPagamento'
+import CheckoutRetorno from './pages/CheckoutRetorno'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import NotFound from './pages/NotFound'
@@ -46,6 +47,7 @@ export default function App() {
         <Route element={<CheckoutLayout />}>
           <Route path="checkout" element={<Checkout />} />
           <Route path="checkout/pagamento/:id" element={<CheckoutPagamento />} />
+          <Route path="checkout/retorno/:id" element={<CheckoutRetorno />} />
         </Route>
       </Route>
     </Routes>
