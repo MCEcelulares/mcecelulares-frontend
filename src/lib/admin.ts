@@ -1,6 +1,7 @@
 import { apiAutenticada } from './auth'
 import type { Perfil } from './auth'
 import type { Categoria, InfoPagina, Marca, Produto, ProdutosPagina } from './catalogo'
+import type { Pedido, PedidoResumo, StatusPedido } from './pedidos'
 
 // Chamadas do painel administrativo. Todas exigem login; o back-end confere a permissão de cada rota.
 
@@ -121,3 +122,52 @@ export const definirCargos = (id: number, cargos: string[]) =>
   apiAutenticada<Perfil>(`/identidade/usuarios/${id}/cargos`, { method: 'PUT', json: { cargos } })
 
 export const listarCargos = () => apiAutenticada<Cargo[]>('/identidade/cargos')
+
+// ---- Pedidos de todos os clientes (vendas)
+
+export interface ClientePedido {
+  id_usuario: number | null
+  nome: string
+  email: string
+  telefone: string | null
+}
+
+export type PedidoAdmin = PedidoResumo & { cliente: ClientePedido | null }
+export type PedidoCompletoAdmin = Pedido & { cliente: ClientePedido | null }
+
+export interface PedidosAdminPagina {
+  dados: PedidoAdmin[]
+  pagina: number
+  limite: number
+  total: number
+}
+
+/** `query`: status, pagina, limite. Do mais recente para o mais antigo. Exige "pedidos:listar-todos". */
+export const listarTodosPedidos = (query: string) =>
+  apiAutenticada<PedidosAdminPagina>(`/vendas/pedidos?todos=true&${query}`).then((p) => ({
+    ...p,
+    dados: p.dados.map((d) => ({ ...d, valor_total: Number(d.valor_total), valor_frete: Number(d.valor_frete) })),
+  }))
+
+export const buscarPedidoAdmin = (id: string) =>
+  apiAutenticada<PedidoCompletoAdmin>(`/vendas/pedidos/${encodeURIComponent(id)}`).then((p) => ({
+    ...p,
+    valor_total: Number(p.valor_total),
+    valor_frete: Number(p.valor_frete),
+    itens: (p.itens ?? []).map((i) => ({ ...i, preco_unitario: Number(i.preco_unitario) })),
+  }))
+
+/** Transições permitidas pelo back-end: aguardando → pago/cancelado, pago → enviado/cancelado, enviado → entregue. */
+export const atualizarStatusPedido = (id: number, status: StatusPedido) =>
+  apiAutenticada<PedidoCompletoAdmin>(`/vendas/pedidos/${id}/status`, { method: 'PATCH', json: { status } })
+
+/**
+ * O painel só oferece o fluxo normal da loja. "Aguardando → pago" fica de fora de propósito: quem confirma o pagamento
+ * é o Mercado Pago (ADR-011); marcar à mão contornaria essa conferência.
+ */
+export const PROXIMO_STATUS: Partial<Record<StatusPedido, { status: StatusPedido; rotulo: string; pergunta: string }>> = {
+  PAGO: { status: 'ENVIADO', rotulo: 'Marcar como enviado', pergunta: 'Marcar como enviado?' },
+  ENVIADO: { status: 'ENTREGUE', rotulo: 'Marcar como entregue', pergunta: 'Marcar como entregue?' },
+}
+
+export const PODE_CANCELAR: StatusPedido[] = ['AGUARDANDO_PAGAMENTO', 'PAGO']
