@@ -16,7 +16,20 @@ export function cpfValido(valor: string): boolean {
 
 export const telefoneValido = (valor: string) => [10, 11].includes(soDigitos(valor).length)
 
-export const emailValido = (valor: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor.trim())
+const FORMATO_EMAIL = /^(?!\.)(?!.*\.\.)[a-z0-9._%+-]+(?<!\.)@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i
 
-export const SENHA_MIN = 6
+export const emailValido = (valor: string) => valor.trim().length <= 254 && FORMATO_EMAIL.test(valor.trim())
+
+export const SENHA_MIN = 8
 export const SENHA_MAX = 72
+
+export const DICA_SENHA = `Use de ${SENHA_MIN} a ${SENHA_MAX} caracteres, com letra maiúscula, minúscula e número.`
+
+export function erroDeSenha(senha: string): string | null {
+  if (senha.length < SENHA_MIN) return `Use pelo menos ${SENHA_MIN} caracteres.`
+  if (senha.length > SENHA_MAX) return `Use no máximo ${SENHA_MAX} caracteres.`
+  if (!/[a-z]/.test(senha)) return 'Inclua ao menos uma letra minúscula.'
+  if (!/[A-Z]/.test(senha)) return 'Inclua ao menos uma letra maiúscula.'
+  if (!/\d/.test(senha)) return 'Inclua ao menos um número.'
+  return null
+}

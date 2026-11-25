@@ -4,7 +4,7 @@ import { classeBotao } from '../../components/ui/botao'
 import { CampoSenha } from '../../components/ui/Campo'
 import { useAuth } from '../../hooks/useAuth'
 import { useFormulario } from '../../hooks/useFormulario'
-import { SENHA_MAX, SENHA_MIN } from '../../lib/validacao'
+import { DICA_SENHA, erroDeSenha } from '../../lib/validacao'
 
 const VAZIO = { atual: '', nova: '', confirmar: '' }
 
@@ -15,11 +15,9 @@ export default function Seguranca() {
     inicial: VAZIO,
     validar: (v) => ({
       ...(!v.atual && { atual: 'Informe sua senha atual.' }),
-      ...(v.nova.length < SENHA_MIN
-        ? { nova: `Use pelo menos ${SENHA_MIN} caracteres.` }
-        : v.nova.length > SENHA_MAX
-          ? { nova: `Use no máximo ${SENHA_MAX} caracteres.` }
-          : v.nova === v.atual && { nova: 'A nova senha deve ser diferente da atual.' }),
+      ...(erroDeSenha(v.nova)
+        ? { nova: erroDeSenha(v.nova)! }
+        : v.nova === v.atual && { nova: 'A nova senha deve ser diferente da atual.' }),
       ...(v.confirmar !== v.nova && { confirmar: 'As senhas não coincidem.' }),
     }),
     enviar: async (v) => {
@@ -48,7 +46,7 @@ export default function Seguranca() {
           {erroGeral && <AlertaErro mensagem={erroGeral} />}
           {sucesso && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">Senha alterada com sucesso.</p>}
           <CampoSenha label="Senha atual" name="atual" autoComplete="current-password" value={valores.atual} onChange={(e) => alterar('atual', e.target.value)} erro={erros.atual} />
-          <CampoSenha label="Nova senha" name="nova" autoComplete="new-password" value={valores.nova} onChange={(e) => alterar('nova', e.target.value)} erro={erros.nova} dica={`Use pelo menos ${SENHA_MIN} caracteres.`} />
+          <CampoSenha label="Nova senha" name="nova" autoComplete="new-password" value={valores.nova} onChange={(e) => alterar('nova', e.target.value)} erro={erros.nova} dica={DICA_SENHA} />
           <CampoSenha label="Confirmar nova senha" name="confirmar" autoComplete="new-password" value={valores.confirmar} onChange={(e) => alterar('confirmar', e.target.value)} erro={erros.confirmar} />
           <button type="submit" disabled={enviando} className={classeBotao('primario', 'formulario', 'sm:w-auto sm:px-8')}>
             {enviando ? 'Alterando...' : 'Alterar senha'}

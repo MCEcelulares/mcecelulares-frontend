@@ -6,7 +6,7 @@ import { Campo, CampoSenha } from '../components/ui/Campo'
 import { useAuth } from '../hooks/useAuth'
 import { useFormulario, type Erros } from '../hooks/useFormulario'
 import { mascararCpf, mascararTelefone } from '../lib/mascaras'
-import { cpfValido, emailValido, SENHA_MAX, SENHA_MIN, telefoneValido } from '../lib/validacao'
+import { cpfValido, DICA_SENHA, emailValido, erroDeSenha, telefoneValido } from '../lib/validacao'
 
 
 const VAZIO = { nome: '', cpf: '', telefone: '', email: '', senha: '', confirmar: '' }
@@ -17,8 +17,8 @@ function validar(v: typeof VAZIO): Erros<typeof VAZIO> {
   if (!cpfValido(v.cpf)) erros.cpf = 'CPF inválido.'
   if (!telefoneValido(v.telefone)) erros.telefone = 'Informe um telefone com DDD.'
   if (!emailValido(v.email)) erros.email = 'Informe um e-mail válido.'
-  if (v.senha.length < SENHA_MIN) erros.senha = `Use pelo menos ${SENHA_MIN} caracteres.`
-  else if (v.senha.length > SENHA_MAX) erros.senha = `Use no máximo ${SENHA_MAX} caracteres.`
+  const erroSenha = erroDeSenha(v.senha)
+  if (erroSenha) erros.senha = erroSenha
   if (v.confirmar !== v.senha) erros.confirmar = 'As senhas não coincidem.'
   return erros
 }
@@ -62,7 +62,7 @@ export default function Cadastro() {
               <h3 id="grupo-acesso" className="titulo-card">E-mail e senha</h3>
               <Campo label="E-mail" name="email" type="email" autoComplete="email" placeholder="seuemail@exemplo.com" value={valores.email} onChange={(e) => alterar('email', e.target.value)} erro={erros.email} />
               <div className="grid gap-5 sm:grid-cols-2">
-                <CampoSenha label="Senha" name="senha" autoComplete="new-password" placeholder={`Mínimo de ${SENHA_MIN} caracteres`} value={valores.senha} onChange={(e) => alterar('senha', e.target.value)} erro={erros.senha} dica={`Use pelo menos ${SENHA_MIN} caracteres.`} />
+                <CampoSenha label="Senha" name="senha" autoComplete="new-password" placeholder="Crie uma senha forte" value={valores.senha} onChange={(e) => alterar('senha', e.target.value)} erro={erros.senha} dica={DICA_SENHA} />
                 <CampoSenha label="Confirmar senha" name="confirmar" autoComplete="new-password" placeholder="Digite a senha novamente" value={valores.confirmar} onChange={(e) => alterar('confirmar', e.target.value)} erro={erros.confirmar} />
               </div>
             </section>
