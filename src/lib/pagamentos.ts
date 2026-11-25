@@ -15,6 +15,11 @@ export const iniciarPagamento = (idPedido: number, valor: number, metodoPagament
 export const sincronizarPagamento = (idPedido: number | string) =>
   apiAutenticada<Pagamento>(`/pagamento/pagamentos/${idPedido}/sincronizar`, { method: 'POST' })
 
+export const pagamentoForcadoHabilitado = import.meta.env.VITE_PAGAMENTO_FORCADO === 'true'
+
+export const forcarPagamento = (idPedido: number | string) =>
+  apiAutenticada<Pagamento>(`/pagamento/pagamentos/${idPedido}/forcar`, { method: 'POST' })
+
 export const urlDePagamentoSegura = (url: string) => {
   try {
     return new URL(url).protocol === 'https:'

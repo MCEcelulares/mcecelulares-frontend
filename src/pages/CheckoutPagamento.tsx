@@ -10,7 +10,7 @@ import { useProdutosPorId } from '../hooks/useProdutosPorId'
 import { mensagemDe, statusDe } from '../lib/api'
 import { formatarCep, linhaCidade, linhaRua } from '../lib/enderecos'
 import { dataHora, formatarPreco } from '../lib/formatar'
-import { iniciarPagamento, urlDePagamentoSegura } from '../lib/pagamentos'
+import { forcarPagamento, iniciarPagamento, pagamentoForcadoHabilitado, urlDePagamentoSegura } from '../lib/pagamentos'
 import { buscarPedido, type Pedido } from '../lib/pedidos'
 
 type Carga = { id: string; pedido: Pedido | null; erro: boolean }
@@ -154,6 +154,19 @@ export default function CheckoutPagamento() {
     }
   }
 
+  const confirmarSemGateway = async () => {
+    setMensagem(null)
+    setPagando(true)
+    try {
+      await forcarPagamento(pedido.id_pedido)
+      setAprovado(true)
+    } catch (e) {
+      setMensagem({ tom: 'erro', texto: mensagemDe(e, 'Não foi possível confirmar o pagamento. Tente novamente.') })
+    } finally {
+      setPagando(false)
+    }
+  }
+
   const resumo = pedido.itens.map((i) => ({
     chave: i.id_item,
     nome: i.nome_produto,
@@ -204,6 +217,16 @@ export default function CheckoutPagamento() {
               >
                 {redirecionando ? 'Redirecionando para o Mercado Pago...' : pagando ? 'Processando...' : `Pagar agora ${formatarPreco(pedido.valor_total)}`}
               </button>
+              {pagamentoForcadoHabilitado && (
+                <button
+                  type="button"
+                  onClick={confirmarSemGateway}
+                  disabled={pagando}
+                  className="w-full rounded-xl border border-dashed border-slate-300 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Confirmar pagamento sem Mercado Pago (demonstração)
+                </button>
+              )}
               <p className="text-center text-xs text-slate-500">
                 Já pagou e fechou a janela do Mercado Pago?{' '}
                 <Link to={`/checkout/retorno/${pedido.id_pedido}`} className="font-semibold text-brand-600 hover:underline">Conferir pagamento</Link>
